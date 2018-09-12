@@ -81,7 +81,7 @@ public class BiEngine
             //置入表中
             biDataSourceMap.put(biDataSource.getDsName(), biDataSource);
         }
-        
+
         //2.选择结果数据源
         //验证目标数据源是否存在
         String resultDsRef = biMetaInfo.getResultDsRef();
@@ -95,14 +95,14 @@ public class BiEngine
             Logs.w("resultDsRef not found in datasources definition!");
             return;
         }
-        
+
         MyJdbc targetJdbc = biDataSourceMap.get(resultDsRef).getJdbc();
         if (targetJdbc == null)
         {
             Logs.w("targetJdbc is empty!");
             return;
         }
-        
+
         //3.依次解析并计算出结果
         List<BiView> biViews = biMetaInfo.getViews();
         for (BiView biView : biViews)
@@ -110,14 +110,14 @@ public class BiEngine
             String viewName = biView.getViewName();
             String refDsName = biView.getRefDsName();
             String sql = biView.getSql();
-            
+
             if (StringUtils.isEmpty(refDsName))
             {
                 //如果没有显式指定ds名称，那么就是结果的ds名称
                 refDsName = resultDsRef;
             }
             MyJdbc thisJdbc = biDataSourceMap.get(refDsName).getJdbc();
-            
+
             //视图都需要落到目标表中
             if (StringUtils.isNotEmpty(sql))
             {
@@ -127,7 +127,7 @@ public class BiEngine
                     //查询出结果集
                     List<Map<String, Object>> listmap = thisJdbc.listMap(sql);
                     //结果集中已经自带了视图列的信息
-                    
+
                     //                    //视图列
                     //                    List<String> viewColumns = new ArrayList<>();
                     //                    String dbType = JdbcConstants.MYSQL;
@@ -150,7 +150,7 @@ public class BiEngine
                     //                        //conditions [card.aaa = 1, card.bbb = 2, card.ccc = 3]
                     //                        //groupByColumns [card.eee]
                     //                        //orderByColumns [card.ddd]
-                    //                        
+                    //
                     //                        //排除掉该排除的列，就是参数列
                     //                        for (Condition condition : visitor.getConditions())
                     //                        {
@@ -170,9 +170,9 @@ public class BiEngine
                     //                        viewColumns.add("result");
                     //                    }
                     //                    Logs.i("视图列:" + viewColumns);
-                    
+
                     //词法分析还是不够靠谱先进。而直接从结果集中拿到字段列名，还是靠谱给力的！
-                    
+
                     //刷新数据到目标表中
                     targetJdbc.createTableAndRefreshColumnData(viewName, listmap);
                 }
@@ -264,7 +264,7 @@ public class BiEngine
         }
         Logs.i("Process OK!");
     }
-    
+
     /**
      * 表结构与数据的完全拷贝，仅支持mysql<br>
      * 拷贝的目的地列的数据类型都是String
@@ -294,7 +294,7 @@ public class BiEngine
             }
             //查询该表的所有数据
             List<Map<String, Object>> listmap = thisJdbc.listMap(String.format("select * from %s", tableName));
-            
+
             //插入到目标表中
             targetJdbc.createTableAndRefreshColumnData(tableName, viewColumns, listmap);
         }
@@ -302,59 +302,5 @@ public class BiEngine
         {
             e.printStackTrace();
         }
-    }
-    
-    public static void main(String[] args)
-    {
-        //构造对象
-        BiMetaInfo biMetaInfo = new BiMetaInfo()
-            .setDatasources(
-                Lists.asList(
-                    new BiDataSource().setDsName("local_mysql_vipcard")
-                        .setUrl("jdbc:mysql://myzoo.lnwazg.com:3306/vipcard?useUnicode=true&generateSimpleParameterMetadata=true&characterEncoding=UTF-8&autoReconnect=true&autoReconnectForPools=true")
-                        .setUsername("lnwazg")
-                        .setPassword("lnwazg19890118__000"),
-                    new BiDataSource().setDsName("local_sqlite_result")
-                        .setUrl("jdbc:sqlite://d:/BI.db")
-                        .setUsername("")
-                        .setPassword(""),
-                    new BiDataSource().setDsName("local_data_file")
-                        .setUrl("file:/c:/1.txt")))
-            .setResultDsRef("local_sqlite_result")
-            .setViews(
-                Lists.asList(
-                    new BiView()
-                        .setViewName("card")
-                        .setRefDsName("local_mysql_vipcard")
-                        .setSql("SELECT cardName,remark FROM card"),
-                    new BiView()
-                        .setViewName("test")
-                        .setRefDsName("local_data_file")
-                        .setColumnSplitter(" ")
-                        .setColumns(Lists.asList("aaa", "bbb", "ccc", "ddd"))
-                        .setAction("txtRead"),
-                    new BiView()
-                        .setViewName("result")
-                        .setSql("select count(1) result from card where cardName like '巨星%' and remark like '烫%'"),
-                    new BiView()
-                        .setViewName("result2")
-                        .setSql("select count(1) result from test")));
-                        
-        System.out.println(biMetaInfo);
-        
-        try
-        {
-            //写入（注释掉写入之后，即可以写入的内容作为模板，以此为基准进行再创作）
-            //            FileUtils.write(new File("c:/1.json"), GsonKit.prettyGson.toJson(biMetaInfo), CharEncoding.UTF_8);
-            
-            //读取
-            biMetaInfo = GsonKit.prettyGson.fromJson(FileUtils.readFileToString(new File("c:/1.json"), CharEncoding.UTF_8), BiMetaInfo.class);
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-        }
-        //解析这个对象，自上而下去解析执行
-        BiEngine.process(biMetaInfo);
     }
 }
