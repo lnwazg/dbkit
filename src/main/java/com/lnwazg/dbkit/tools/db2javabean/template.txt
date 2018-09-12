@@ -1,0 +1,23 @@
+package ${package};
+
+import java.util.Date;
+
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+
+import com.lnwazg.dbkit.anno.entity.AutoIncrement;
+import com.lnwazg.dbkit.anno.entity.Comment;
+import com.lnwazg.dbkit.anno.entity.Id;
+import com.lnwazg.dbkit.anno.entity.Varchar;
+import com.lnwazg.dbkit.anno.entity.Table;
+
+${comment}
+${tableAnno}
+public class ${ClassName}
+{
+${fields}${getSet}	@Override
+    public String toString()
+    {
+        return ToStringBuilder.reflectionToString(this, ToStringStyle.JSON_STYLE);
+    }
+}
