@@ -4,9 +4,9 @@ import java.util.Collection;
 import java.util.Iterator;
 
 /**
- * @version 0.0.1
- * @since 0.0.1
- * @author Shaun Chyxion
+ * 字符串工具类
+ * @author nan.li
+ * @version 2018年9月13日
  */
 public class StringUtils
 {

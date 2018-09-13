@@ -1,15 +1,11 @@
 package com.lnwazg.dbkit.tools.bi;
 
-import java.io.File;
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.StringUtils;
 
 import com.lnwazg.dbkit.jdbc.MyJdbc;
@@ -22,7 +18,6 @@ import com.lnwazg.dbkit.tools.graphtool.vo.ColumnData;
 import com.lnwazg.dbkit.utils.DbKit;
 import com.lnwazg.kit.excel.ExcelKit;
 import com.lnwazg.kit.file.FileKit;
-import com.lnwazg.kit.gson.GsonKit;
 import com.lnwazg.kit.list.Lists;
 import com.lnwazg.kit.log.Logs;
 
@@ -81,7 +76,7 @@ public class BiEngine
             //置入表中
             biDataSourceMap.put(biDataSource.getDsName(), biDataSource);
         }
-
+        
         //2.选择结果数据源
         //验证目标数据源是否存在
         String resultDsRef = biMetaInfo.getResultDsRef();
@@ -95,14 +90,14 @@ public class BiEngine
             Logs.w("resultDsRef not found in datasources definition!");
             return;
         }
-
+        
         MyJdbc targetJdbc = biDataSourceMap.get(resultDsRef).getJdbc();
         if (targetJdbc == null)
         {
             Logs.w("targetJdbc is empty!");
             return;
         }
-
+        
         //3.依次解析并计算出结果
         List<BiView> biViews = biMetaInfo.getViews();
         for (BiView biView : biViews)
@@ -110,14 +105,14 @@ public class BiEngine
             String viewName = biView.getViewName();
             String refDsName = biView.getRefDsName();
             String sql = biView.getSql();
-
+            
             if (StringUtils.isEmpty(refDsName))
             {
                 //如果没有显式指定ds名称，那么就是结果的ds名称
                 refDsName = resultDsRef;
             }
             MyJdbc thisJdbc = biDataSourceMap.get(refDsName).getJdbc();
-
+            
             //视图都需要落到目标表中
             if (StringUtils.isNotEmpty(sql))
             {
@@ -127,7 +122,7 @@ public class BiEngine
                     //查询出结果集
                     List<Map<String, Object>> listmap = thisJdbc.listMap(sql);
                     //结果集中已经自带了视图列的信息
-
+                    
                     //                    //视图列
                     //                    List<String> viewColumns = new ArrayList<>();
                     //                    String dbType = JdbcConstants.MYSQL;
@@ -170,9 +165,9 @@ public class BiEngine
                     //                        viewColumns.add("result");
                     //                    }
                     //                    Logs.i("视图列:" + viewColumns);
-
+                    
                     //词法分析还是不够靠谱先进。而直接从结果集中拿到字段列名，还是靠谱给力的！
-
+                    
                     //刷新数据到目标表中
                     targetJdbc.createTableAndRefreshColumnData(viewName, listmap);
                 }
@@ -264,7 +259,7 @@ public class BiEngine
         }
         Logs.i("Process OK!");
     }
-
+    
     /**
      * 表结构与数据的完全拷贝，仅支持mysql<br>
      * 拷贝的目的地列的数据类型都是String
@@ -294,7 +289,7 @@ public class BiEngine
             }
             //查询该表的所有数据
             List<Map<String, Object>> listmap = thisJdbc.listMap(String.format("select * from %s", tableName));
-
+            
             //插入到目标表中
             targetJdbc.createTableAndRefreshColumnData(tableName, viewColumns, listmap);
         }
