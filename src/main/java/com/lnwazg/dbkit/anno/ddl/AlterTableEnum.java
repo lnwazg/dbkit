@@ -7,5 +7,5 @@ package com.lnwazg.dbkit.anno.ddl;
  */
 public enum AlterTableEnum
 {
-    ADD, DROP, MODIFY
+    ADD, DROP, MODIFY;
 }
