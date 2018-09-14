@@ -18,11 +18,13 @@
 - 支持内建的性能监测http接口，可视化查看数据库查询性能
 
 ### 未来开发计划：
-TODO 近期准备支持完整的JPA method name like sql invoking
-TODO AOP切面事务除了支持注解外，还要支持通配符过滤
+- 近期准备支持完整的JPA method name like sql invoking  
+- AOP切面事务除了支持注解外，还要支持通配符过滤  
 
 ### ChangeLogs:
 2018-9-14：  
-大版本开始活跃维护
+大版本开始活跃维护  
+
+
 
 
