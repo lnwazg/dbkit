@@ -16,3 +16,7 @@
 - 方便的数据库默认配置表工具DBConfigHelper
 - 支持方法命名规则查询，例如:findByNameAndAgeOrderByIdDesc
 - 支持内建的性能监测http接口，可视化查看数据库查询性能
+
+### ChangeLogs:
+2018-9-14：  
+大版本开始活跃维护
