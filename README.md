@@ -17,11 +17,11 @@
 - 支持方法命名规则查询，例如:findByNameAndAgeOrderByIdDesc
 - 支持内建的性能监测http接口，可视化查看数据库查询性能
 
-### 未来开发计划：
+### 开发计划：
 - 近期准备支持完整的JPA method name like sql invoking  
 - AOP切面事务除了支持注解外，还要支持通配符过滤  
 
-### ChangeLogs:
+### 更新日志:
 2018-9-14：  
 大版本开始活跃维护  
 
