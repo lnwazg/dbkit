@@ -13,6 +13,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<jdk.version>1.8</jdk.version>
 		<charset.encoding>UTF-8</charset.encoding>
+		<maven.test.skip>true</maven.test.skip>
 	</properties>
 
 	<repositories>
