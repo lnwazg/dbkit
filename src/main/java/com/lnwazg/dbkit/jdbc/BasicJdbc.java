@@ -18,8 +18,6 @@ import com.lnwazg.dbkit.resolver.ResultSetResolve;
  */
 public interface BasicJdbc
 {
-    //查询单个对象或者单个值的API=========================================================================
-    //基本都是由load 或者 find开头的
     /**
      * 根据一个实体类的Id编码去查询出该实体类的对象，仅返回一条记录<br>
      * 该方法无须指定sql语句即可查询到数据
@@ -398,12 +396,34 @@ public interface BasicJdbc
     boolean containsLike(Class<?> tableClazz, String field, String value)
         throws SQLException;
         
+    /**
+     * 插入一个实体类到数据库
+     * @author nan.li
+     * @param entity
+     * @return
+     * @throws SQLException
+     */
     int insert(Object entity)
         throws SQLException;
         
+    /**
+     * 批量插入实体类列表到数据库，使用默认的batchSize
+     * @author nan.li
+     * @param entities
+     * @return
+     * @throws SQLException
+     */
     int insertBatch(List<?> entities)
         throws SQLException;
         
+    /**
+     * 批量插入实体类列表到数据库，指定批量提交的batchSize
+     * @author nan.li
+     * @param entities
+     * @param batchSize
+     * @return
+     * @throws SQLException
+     */
     int insertBatch(List<?> entities, int batchSize)
         throws SQLException;
         
@@ -418,9 +438,23 @@ public interface BasicJdbc
     int delete(Object entity)
         throws SQLException;
         
+    /**
+     * 根据表类删除某张表
+     * @author nan.li
+     * @param tableClazz
+     * @return
+     * @throws SQLException
+     */
     boolean dropTable(Class<?> tableClazz)
         throws SQLException;
         
+    /**
+     * 根据表名称删除某张表
+     * @author nan.li
+     * @param tableName
+     * @return
+     * @throws SQLException
+     */
     boolean dropTable(String tableName)
         throws SQLException;
 }
