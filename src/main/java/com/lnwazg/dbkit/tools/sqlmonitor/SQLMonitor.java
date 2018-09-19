@@ -5,6 +5,7 @@ import java.io.IOException;
 import com.lnwazg.dbkit.utils.DbKit;
 import com.lnwazg.httpkit.Constants;
 import com.lnwazg.httpkit.server.HttpServer;
+import com.lnwazg.kit.http.net.NetUtil;
 import com.lnwazg.kit.log.Logs;
 import com.lnwazg.kit.reflect.ClassKit;
 
@@ -37,8 +38,12 @@ public class SQLMonitor
             {
                 Logs.i("SQL_MONITOR已启用...");
                 Logs.i("启动内置http服务器进行sql监控...");
+                
                 //启动http服务器，监控sql的执行情况
-                int port = 5000;
+                
+                //监控服务的端口号做到自适应
+                int minPort = 5000;//寻找的起始端口号
+                int port = NetUtil.findAvailablePortFrom(minPort);//实际寻找到的可用端口号
                 HttpServer server;
                 try
                 {
