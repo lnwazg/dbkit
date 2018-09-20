@@ -113,6 +113,7 @@ public class DaoProxy
                     else
                     {
                         //sql为空，那么将采用方法名规则解析出对应的sql语句
+                    		//这种按名称解析sql逻辑的方法是一种更强大的高级DAO编程手法！
                         String methodName = method.getName();
                         String methodStart = "";
                         if (StringUtils.startsWith(methodName, "queryBy"))
@@ -200,7 +201,7 @@ public class DaoProxy
                                 paramPartSql.append("select * from $tableName where 1=1");
                                 for (String paramName : paramNames)
                                 {
-                                    paramPartSql.append(" and ").append(paramName).append("=?");
+                                    paramPartSql.append(" and ").append(paramName.toLowerCase()).append("=?");
                                 }
                                 sql = paramPartSql.append(orderByPartSql).toString();
                                 sqlNeedFillTableName = true;
@@ -290,7 +291,7 @@ public class DaoProxy
                                 
                                 if (sqlNeedFillTableName)
                                 {
-                                    sql = sql.replace("$tableName", paramTypeClass.getName());
+                                    sql = sql.replace("$tableName", paramTypeClass.getSimpleName());
                                     Logs.d("方法名规则查询完整的sql语句为:" + sql);
                                 }
                                 
@@ -374,10 +375,9 @@ public class DaoProxy
                             //否则，不可枚举，那么是一个自定义的JavaBean
                             //否则，就是一个具体的JavaBean，将其直接作Bean映射即可
                             //result = jdbc.findOne(new ResultSetToObjectMapper<>(rawTypeClass), sql);
-                            
                             if (sqlNeedFillTableName)
                             {
-                                sql = sql.replace("$tableName", clazz.getName());
+                                sql = sql.replace("$tableName", clazz.getSimpleName());
                                 Logs.d("方法名规则查询完整的sql语句为:" + sql);
                             }
                             result = jdbc.findOne(clazz, sql, args);
@@ -386,11 +386,9 @@ public class DaoProxy
                 }
                 else if (method.isAnnotationPresent(Insert.class))
                 {
-                
                 }
                 else if (method.isAnnotationPresent(Delete.class))
                 {
-                
                 }
                 else if (method.isAnnotationPresent(Update.class))
                 {
@@ -401,7 +399,8 @@ public class DaoProxy
                 }
                 else
                 {
-                    //非注解类型，则要调用的MyJdbc的对象的方法
+                    //非注解类型，则要调用的MyJdbc对象的方法
+                		//所以，只要是调用非MyJdbc对象的方法，都应当加上注解！
                     result = method.invoke(jdbc, args);
                     //cglib由此来看，堪称神器，几乎可以实现任何事情，并能够大大降低开发的风险和难度以及繁琐程度啊！
                 }
