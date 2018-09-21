@@ -368,7 +368,7 @@ public class BasicJdbcSupport implements BasicJdbc
     public int update(final String sql, final Object... values)
         throws SQLException
     {
-        Logs.d("update sql=" + sql + " values=" + Arrays.asList(values));
+        Logs.d("sql=" + sql + " values=" + Arrays.asList(values));
         return exec(new StatementObject<Integer>()
         {
             public AllDbExecInfo build()

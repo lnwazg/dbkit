@@ -18,4 +18,10 @@ import java.lang.annotation.Target;
 @Retention(RUNTIME)
 public @interface Transactional
 {
+    /**
+     * 指定的数据源名称，默认为空
+     * @author nan.li
+     * @return
+     */
+    String dsName() default "";
 }

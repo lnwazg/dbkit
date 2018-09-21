@@ -274,15 +274,57 @@ public class DbKit
             for (Class<?> clazz : cList)
             {
                 Logs.i(String.format("[package search] init %s ", clazz.getName()));
+                
+                //如果MyJdbc是clazz的父类的话，那么就需要对该DAO进行代理
                 if (MyJdbc.class.isAssignableFrom(clazz))
                 {
-                    //如果MyJdbc是clazz的父类的话，那么就需要对该DAO进行代理
                     Object daoObject = DaoProxy.proxyDaoInterface(clazz, jdbc);//根据接口生成动态代理类
                     B.s(clazz, daoObject);
-                    //                    UserDao userDao = MyDaoProxy.proxyDaoInterface(UserDao.class, jdbc);//根据接口生成动态代理类
-                    //                    //B.s(userDao);//如果是一般的普通类，那么这么注册倒也没有问题。
-                    //                    //但现在是cglib生成的代理类，即原有类的子类了，因此必须手动注册类型才是王道！
-                    //                    B.s(UserDao.class, userDao);//手动注册DAO
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+    
+    /**
+     * 自适应数据源并初始化DAO层
+     * @author nan.li
+     * @param packageName
+     */
+    public static void packageSearchAndInitDao(String packageName)
+    {
+        Logs.i("begin package search dao...");
+        List<Class<?>> cList = ClassKit.getPackageAllClasses(packageName.trim());
+        try
+        {
+            for (Class<?> clazz : cList)
+            {
+                Logs.i(String.format("[package search] init %s ", clazz.getName()));
+                
+                //如果MyJdbc是clazz的父类的话，那么就需要对该DAO进行代理
+                if (MyJdbc.class.isAssignableFrom(clazz))
+                {
+                    
+                    String dsName = "";
+                    if (clazz.isAnnotationPresent(com.lnwazg.dbkit.anno.dao.DataSource.class))
+                    {
+                        com.lnwazg.dbkit.anno.dao.DataSource dataSource = clazz.getAnnotation(com.lnwazg.dbkit.anno.dao.DataSource.class);
+                        dsName = dataSource.value();
+                    }
+                    MyJdbc jdbc = DsManager.getDataSourceByName(dsName);
+                    if (StringUtils.isNotEmpty(dsName))
+                    {
+                        Logs.i("使用数据源:" + dsName + "初始化DAO：" + clazz.getSimpleName());
+                    }
+                    else
+                    {
+                        Logs.i("使用默认数据源初始化DAO：" + clazz.getSimpleName());
+                    }
+                    Object daoObject = DaoProxy.proxyDaoInterface(clazz, jdbc);//根据接口生成动态代理类
+                    B.s(clazz, daoObject);
                 }
             }
         }
@@ -314,10 +356,39 @@ public class DbKit
                     Logs.i(String.format("%s 是Service的内部类，智能忽略之...", clazz.getName()));
                     continue;
                 }
-                Object daoObject = ServiceProxy.proxyService(clazz, jdbc);//根据接口生成动态代理类
-                B.s(clazz, daoObject);
-                //      CardService cardService = MyServiceProxy.proxyService(CardService.class, jdbc);//根据接口生成动态代理类
-                //      B.s(CardService.class, cardService);
+                Object object = ServiceProxy.proxyService(clazz, jdbc);//根据接口生成动态代理类
+                B.s(clazz, object);
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+    
+    /**
+     * 自适应数据源并初始化Service层
+     * @author nan.li
+     * @param packageName
+     */
+    public static void packageSearchAndInitService(String packageName)
+    {
+        Logs.i("begin package search service...");
+        List<Class<?>> cList = ClassKit.getPackageAllClasses(packageName.trim());
+        try
+        {
+            for (Class<?> clazz : cList)
+            {
+                Logs.i(String.format("[package search] init %s ", clazz.getName()));
+                //                com.lnwazg.service.UserService$1 
+                if (clazz.getName().indexOf("$") != -1)
+                {
+                    //对内部类不作代理，避免cglib出现的奇怪问题
+                    Logs.i(String.format("%s 是Service的内部类，智能忽略之...", clazz.getName()));
+                    continue;
+                }
+                Object object = ServiceProxy.proxyService(clazz);//根据接口生成动态代理类
+                B.s(clazz, object);
             }
         }
         catch (Exception e)
@@ -340,7 +411,6 @@ public class DbKit
         {
             for (Class<?> clazz : cList)
             {
-                
                 Logs.i(String.format("[package search] init %s ", clazz.getName()));
                 //com.lnwazg.entity.User$1 
                 if (clazz.getName().indexOf("$") != -1)
@@ -359,7 +429,58 @@ public class DbKit
     }
     
     /**
-     * 包扫描，根据 AlterTable注解修改表结构
+     * 自适应数据源并初始化数据库表结构。通过包扫描，并根据实体类初始化对应的数据库表结构<br>
+     * 自适应规则为：<br>
+     * 1.根据clazz上的@DataSource注解的内容去决定采用的数据源<br>
+     * 2.若注解内容为空或者获取失败，则采用默认数据源
+     * @author nan.li
+     * @param packageName
+     */
+    public static void packageSearchAndInitTables(String packageName)
+    {
+        Logs.i("begin package search entities and init database tables...");
+        Logs.i("开始自适应数据源进行表初始化...");
+        List<Class<?>> cList = ClassKit.getPackageAllClasses(packageName.trim());
+        try
+        {
+            for (Class<?> clazz : cList)
+            {
+                Logs.i(String.format("[package search] init %s ", clazz.getName()));
+                //com.lnwazg.entity.User$1 
+                if (clazz.getName().indexOf("$") != -1)
+                {
+                    //对内部类不初始化对应的数据库表
+                    Logs.i(String.format("%s 是Entity的内部类，智能忽略之...", clazz.getName()));
+                    continue;
+                }
+                
+                String dsName = "";
+                if (clazz.isAnnotationPresent(com.lnwazg.dbkit.anno.dao.DataSource.class))
+                {
+                    com.lnwazg.dbkit.anno.dao.DataSource dataSource = clazz.getAnnotation(com.lnwazg.dbkit.anno.dao.DataSource.class);
+                    dsName = dataSource.value();
+                }
+                MyJdbc jdbc = DsManager.getDataSourceByName(dsName);
+                if (StringUtils.isNotEmpty(dsName))
+                {
+                    Logs.i("使用数据源:" + dsName + "初始化表：" + clazz.getSimpleName());
+                }
+                else
+                {
+                    Logs.i("使用默认数据源初始化表：" + clazz.getSimpleName());
+                }
+                jdbc.createTable(clazz);
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+    
+    /**
+     * 包扫描，根据 AlterTable注解修改表结构<br>
+     * 指定专用的数据源
      * @author nan.li
      * @param string
      * @param jdbc
@@ -388,4 +509,5 @@ public class DbKit
             e.printStackTrace();
         }
     }
+    
 }
