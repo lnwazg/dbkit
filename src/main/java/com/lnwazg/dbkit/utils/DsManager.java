@@ -28,12 +28,20 @@ public class DsManager
             Logs.d("使用数据源:" + dsName);
             //获取指定名称的数据源连接对象
             jdbc = B.g(MyJdbc.class, dsName);
+            if (jdbc == null)
+            {
+                Logs.w("数据源对象" + dsName + "为空！");
+            }
         }
         else
         {
             Logs.d("使用默认数据源");
             //获取默认数据源连接对象
             jdbc = B.g(MyJdbc.class);
+            if (jdbc == null)
+            {
+                Logs.w("默认数据源对象为空！");
+            }
         }
         return jdbc;
     }
