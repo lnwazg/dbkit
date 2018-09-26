@@ -52,7 +52,7 @@ public class SQLMonitor
                     server.setControllerSuffix("do");
                     server.setMyZooGroupName("dbkit");
                     server.setContextPath("dbkit");
-                    server.addFreemarkerPageDirRoute("web", Constants.DEFAULT_WEB_RESOURCE_BASE_PATH);
+                    server.addFreemarkerPageDirRoute("web", "__private/");
                     server.packageSearchAndInitUseDefaultFilterConfigs("com.lnwazg.dbkit.tools.sqlmonitor.controller");
                     Logs.i("SQL实时监控模式地址请访问  http://127.0.0.1:" + port + server.getBasePath() + "/web/page/monitor.ftl");
                     //监听在这个端口处
