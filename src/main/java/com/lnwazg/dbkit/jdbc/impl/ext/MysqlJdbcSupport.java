@@ -60,8 +60,20 @@ public class MysqlJdbcSupport extends ConnectionManagerImpl implements MyJdbc
         
         //获取表名称
         String tableName = TableUtils.getTableName(tableClazz);
-        //遍历字段，根据字段去建表
-        Field[] fields = ClassKit.getAllDeclaredFields(tableClazz);
+        
+        //获取字段列表
+        Field[] fields = null;
+        boolean subClassFieldsFirst = TableUtils.isSubClassFieldsFirst(tableClazz);
+        if (subClassFieldsFirst)
+        {
+            Logs.i("子类字段顺序优先");
+            fields = ClassKit.getAllDeclaredFieldsSubClassFirst(tableClazz);
+        }
+        else
+        {
+            Logs.i("父类字段顺序优先");
+            fields = ClassKit.getAllDeclaredFieldsParentClassFirst(tableClazz);
+        }
         
         for (Field field : fields)
         {
@@ -126,7 +138,7 @@ public class MysqlJdbcSupport extends ConnectionManagerImpl implements MyJdbc
                     (defaultValue ? String.format(" default '%s'", field.getAnnotation(DefaultValue.class).value()) : ""),
                     (autoIncrement ? " AUTO_INCREMENT" : ""),
                     (comment ? String.format(" COMMENT '%s'", field.getAnnotation(Comment.class).value()) : ""));
-                    
+                
                 //DROP比较特殊一些
                 if (AlterTableEnum.DROP.name().equals(handle))
                 {
@@ -151,8 +163,7 @@ public class MysqlJdbcSupport extends ConnectionManagerImpl implements MyJdbc
             //获取表名称
             String tableName = TableUtils.getTableName(tableClazz);
             //遍历字段，根据字段去建表
-            //            Field[] fields = tableClazz.getDeclaredFields();
-            Field[] fields = ClassKit.getAllDeclaredFields(tableClazz);
+            Field[] fields = ClassKit.getAllDeclaredFieldsParentClassFirst(tableClazz);
             List<String> fieldSentences = new ArrayList<>();//字段语句列表
             List<String> indexStrList = new ArrayList<>();
             //复合索引的字段名列表

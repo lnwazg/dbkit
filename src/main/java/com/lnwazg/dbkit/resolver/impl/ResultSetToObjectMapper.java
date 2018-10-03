@@ -48,7 +48,7 @@ public class ResultSetToObjectMapper<T> implements ResultSetResolve<T>
         try
         {
             T t = tClass.newInstance();
-            Field[] fields = ClassKit.getAllDeclaredFields(tClass);
+            Field[] fields = ClassKit.getAllDeclaredFieldsParentClassFirst(tClass);
             for (Field field : fields)
             {
                 field.setAccessible(true);

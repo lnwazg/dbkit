@@ -17,6 +17,7 @@ import com.lnwazg.dbkit.jdbc.MyJdbc;
 import com.lnwazg.dbkit.jdbc.impl.ConnectionManagerImpl;
 import com.lnwazg.dbkit.utils.TableUtils;
 import com.lnwazg.kit.list.Lists;
+import com.lnwazg.kit.log.Logs;
 import com.lnwazg.kit.reflect.ClassKit;
 
 /**
@@ -51,7 +52,20 @@ public class SqliteJdbcSupport extends ConnectionManagerImpl implements MyJdbc
         String tableName = TableUtils.getTableName(tableClazz);
         
         //遍历字段，根据字段去建表
-        Field[] fields = ClassKit.getAllDeclaredFields(tableClazz);
+        //获取字段列表
+        Field[] fields = null;
+        boolean subClassFieldsFirst = TableUtils.isSubClassFieldsFirst(tableClazz);
+        if (subClassFieldsFirst)
+        {
+            Logs.i("子类字段顺序优先");
+            fields = ClassKit.getAllDeclaredFieldsSubClassFirst(tableClazz);
+        }
+        else
+        {
+            Logs.i("父类字段顺序优先");
+            fields = ClassKit.getAllDeclaredFieldsParentClassFirst(tableClazz);
+        }
+        
         List<String> fieldSentences = new ArrayList<>();//字段语句列表
         List<String> indexStrList = new ArrayList<>();
         List<String> multipleIndexFieldNames = new ArrayList<>();

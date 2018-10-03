@@ -15,6 +15,8 @@ import com.lnwazg.dbkit.anno.entity.AutoIncrement;
 import com.lnwazg.dbkit.anno.entity.FK;
 import com.lnwazg.dbkit.anno.entity.Id;
 import com.lnwazg.dbkit.anno.entity.Table;
+import com.lnwazg.dbkit.anno.field.ParentClassFieldsFirst;
+import com.lnwazg.dbkit.anno.field.SubClassFieldsFirst;
 import com.lnwazg.dbkit.vo.BatchObj;
 import com.lnwazg.kit.reflect.ClassKit;
 
@@ -69,7 +71,7 @@ public class TableUtils
     public static Map<String, Object> obj2Map(Object entity)
     {
         Map<String, Object> columnDataMap = new LinkedHashMap<>();
-        Field[] fields = ClassKit.getAllDeclaredFields(entity);
+        Field[] fields = ClassKit.getAllDeclaredFieldsParentClassFirst(entity);
         for (Field field : fields)
         {
             field.setAccessible(true);
@@ -110,7 +112,7 @@ public class TableUtils
     {
         Map<String, Object> map = new LinkedHashMap<>();
         //        Field[] fields = entity.getClass().getDeclaredFields();
-        Field[] fields = ClassKit.getAllDeclaredFields(entity);
+        Field[] fields = ClassKit.getAllDeclaredFieldsParentClassFirst(entity);
         for (Field field : fields)
         {
             if (field.isAnnotationPresent(Id.class))
@@ -157,7 +159,7 @@ public class TableUtils
     {
         Map<String, Object> map = new LinkedHashMap<>();
         //        Field[] fields = entity.getClass().getDeclaredFields();
-        Field[] fields = ClassKit.getAllDeclaredFields(entity);
+        Field[] fields = ClassKit.getAllDeclaredFieldsParentClassFirst(entity);
         for (Field field : fields)
         {
             if (!field.isAnnotationPresent(Id.class))
@@ -291,7 +293,7 @@ public class TableUtils
     public static String getIdColumnName(Class<?> tableClazz)
     {
         String ret = "id";//默认值就叫做id
-        Field[] fields = ClassKit.getAllDeclaredFields(tableClazz);
+        Field[] fields = ClassKit.getAllDeclaredFieldsParentClassFirst(tableClazz);
         for (Field field : fields)
         {
             if (field.isAnnotationPresent(Id.class))
@@ -323,7 +325,7 @@ public class TableUtils
     public static List<String> getIdColumnNames(Class<?> tableClazz)
     {
         List<String> list = new ArrayList<>();
-        Field[] fields = ClassKit.getAllDeclaredFields(tableClazz);
+        Field[] fields = ClassKit.getAllDeclaredFieldsParentClassFirst(tableClazz);
         for (Field field : fields)
         {
             if (field.isAnnotationPresent(Id.class))
@@ -353,7 +355,7 @@ public class TableUtils
      */
     public static String getAutoIncrementColumnName(Class<?> tableClazz)
     {
-        Field[] fields = ClassKit.getAllDeclaredFields(tableClazz);
+        Field[] fields = ClassKit.getAllDeclaredFieldsParentClassFirst(tableClazz);
         for (Field field : fields)
         {
             if (field.isAnnotationPresent(AutoIncrement.class))
@@ -378,7 +380,7 @@ public class TableUtils
     public static List<String> getAutoIncrementColumnNames(Class<?> tableClazz)
     {
         List<String> list = new ArrayList<>();
-        Field[] fields = ClassKit.getAllDeclaredFields(tableClazz);
+        Field[] fields = ClassKit.getAllDeclaredFieldsParentClassFirst(tableClazz);
         for (Field field : fields)
         {
             if (field.isAnnotationPresent(AutoIncrement.class))
@@ -408,7 +410,7 @@ public class TableUtils
      */
     public static String getFKColumnName(Class<?> tableClazz)
     {
-        Field[] fields = ClassKit.getAllDeclaredFields(tableClazz);
+        Field[] fields = ClassKit.getAllDeclaredFieldsParentClassFirst(tableClazz);
         for (Field field : fields)
         {
             if (field.isAnnotationPresent(FK.class))
@@ -427,7 +429,7 @@ public class TableUtils
     public static List<String> getFKColumnNames(Class<?> tableClazz)
     {
         List<String> list = new ArrayList<>();
-        Field[] fields = ClassKit.getAllDeclaredFields(tableClazz);
+        Field[] fields = ClassKit.getAllDeclaredFieldsParentClassFirst(tableClazz);
         for (Field field : fields)
         {
             if (field.isAnnotationPresent(FK.class))
@@ -447,7 +449,7 @@ public class TableUtils
     public static List<String> getDateTypeFields(Class<?> tableClazz)
     {
         List<String> list = new ArrayList<>();
-        Field[] fields = ClassKit.getAllDeclaredFields(tableClazz);
+        Field[] fields = ClassKit.getAllDeclaredFieldsParentClassFirst(tableClazz);
         for (Field field : fields)
         {
             if (field.getType() == Date.class)
@@ -468,7 +470,7 @@ public class TableUtils
     {
         Object ret = "";
         //        Field[] fields = entity.getClass().getDeclaredFields();
-        Field[] fields = ClassKit.getAllDeclaredFields(entity);
+        Field[] fields = ClassKit.getAllDeclaredFieldsParentClassFirst(entity);
         for (Field field : fields)
         {
             field.setAccessible(true);
@@ -504,6 +506,34 @@ public class TableUtils
     public static String getPagingSql(String sql, int start, int limit)
     {
         return String.format("select * from (%s) _innerT limit %d,%d", sql, start, limit);
+    }
+    
+    /**
+     * 是否子类的字段的顺序优先<br>
+     * 这个属性决定了最终生成的表结构的字段顺序
+     * @param tableClazz
+     * @return
+     */
+    public static boolean isSubClassFieldsFirst(Class<?> tableClazz)
+    {
+        boolean isSubClassFieldsFirst = true;
+        //遍历字段，根据字段去建表
+        Class<?> clazz = ClassKit.getTopParentClass(tableClazz);
+        if (clazz.isAnnotationPresent(SubClassFieldsFirst.class))
+        {
+            //子类优先
+            isSubClassFieldsFirst = true;
+        }
+        else if (clazz.isAnnotationPresent(ParentClassFieldsFirst.class))
+        {
+            //父类优先
+            isSubClassFieldsFirst = false;
+        }
+        else
+        {
+            isSubClassFieldsFirst = true;
+        }
+        return isSubClassFieldsFirst;
     }
     
 }

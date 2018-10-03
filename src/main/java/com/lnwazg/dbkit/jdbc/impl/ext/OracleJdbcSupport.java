@@ -59,7 +59,21 @@ public class OracleJdbcSupport extends ConnectionManagerImpl implements MyJdbc
         //获取表名称
         String tableName = TableUtils.getTableName(tableClazz);
         //遍历字段，根据字段去建表
-        Field[] fields = ClassKit.getAllDeclaredFields(tableClazz);
+        
+        //获取字段列表
+        Field[] fields = null;
+        boolean subClassFieldsFirst = TableUtils.isSubClassFieldsFirst(tableClazz);
+        if (subClassFieldsFirst)
+        {
+            Logs.i("子类字段顺序优先");
+            fields = ClassKit.getAllDeclaredFieldsSubClassFirst(tableClazz);
+        }
+        else
+        {
+            Logs.i("父类字段顺序优先");
+            fields = ClassKit.getAllDeclaredFieldsParentClassFirst(tableClazz);
+        }
+        
         for (Field field : fields)
         {
             field.setAccessible(true);
@@ -118,7 +132,7 @@ public class OracleJdbcSupport extends ConnectionManagerImpl implements MyJdbc
                     type,
                     (notNull ? " NOT NULL" : ""),
                     (defaultValue ? String.format(" default '%s'", field.getAnnotation(DefaultValue.class).value()) : ""));
-                    
+                
                 //DROP比较特殊一些
                 //如果是DROP操作，那么需要特殊处理
                 if (AlterTableEnum.DROP.name().equals(handle))
@@ -169,7 +183,7 @@ public class OracleJdbcSupport extends ConnectionManagerImpl implements MyJdbc
             //获取表名称
             String tableName = TableUtils.getTableName(tableClazz);
             //遍历字段，根据字段去建表
-            Field[] fields = ClassKit.getAllDeclaredFields(tableClazz);
+            Field[] fields = ClassKit.getAllDeclaredFieldsParentClassFirst(tableClazz);
             List<String> fieldSentences = new ArrayList<>();//字段语句列表
             List<String> indexStrList = new ArrayList<>();
             //复合索引的字段名列表
@@ -224,7 +238,7 @@ public class OracleJdbcSupport extends ConnectionManagerImpl implements MyJdbc
                     type,
                     (notNull ? " NOT NULL" : ""),
                     (defaultValue ? String.format(" default '%s'", field.getAnnotation(DefaultValue.class).value()) : "")));
-                    
+                
                 boolean index = field.isAnnotationPresent(Index.class);//是否是索引
                 if (index)
                 {

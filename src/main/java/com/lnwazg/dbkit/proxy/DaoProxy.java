@@ -113,7 +113,7 @@ public class DaoProxy
                     else
                     {
                         //sql为空，那么将采用方法名规则解析出对应的sql语句
-                    		//这种按名称解析sql逻辑的方法是一种更强大的高级DAO编程手法！
+                        //这种按名称解析sql逻辑的方法是一种更强大的高级DAO编程手法！
                         String methodName = method.getName();
                         String methodStart = "";
                         if (StringUtils.startsWith(methodName, "queryBy"))
@@ -166,12 +166,18 @@ public class DaoProxy
                                             if (StringUtils.endsWith(orderBy, "Desc"))
                                             {
                                                 String fieldName = orderBy.substring(0, orderBy.lastIndexOf("Desc"));
-                                                orderByPartSql.append(fieldName).append(" Desc,");
+                                                if (StringUtils.isNotEmpty(fieldName))
+                                                {
+                                                    orderByPartSql.append(fieldName).append(" Desc,");
+                                                }
                                             }
                                             else if (StringUtils.endsWith(orderBy, "Asc"))
                                             {
                                                 String fieldName = orderBy.substring(0, orderBy.lastIndexOf("Asc"));
-                                                orderByPartSql.append(fieldName).append(" Asc,");
+                                                if (StringUtils.isNotEmpty(fieldName))
+                                                {
+                                                    orderByPartSql.append(fieldName).append(" Asc,");
+                                                }
                                             }
                                             else
                                             {
@@ -201,7 +207,10 @@ public class DaoProxy
                                 paramPartSql.append("select * from $tableName where 1=1");
                                 for (String paramName : paramNames)
                                 {
-                                    paramPartSql.append(" and ").append(paramName.toLowerCase()).append("=?");
+                                    if (StringUtils.isNotEmpty(paramName))
+                                    {
+                                        paramPartSql.append(" and ").append(paramName.toLowerCase()).append("=?");
+                                    }
                                 }
                                 sql = paramPartSql.append(orderByPartSql).toString();
                                 sqlNeedFillTableName = true;
@@ -400,7 +409,7 @@ public class DaoProxy
                 else
                 {
                     //非注解类型，则要调用的MyJdbc对象的方法
-                		//所以，只要是调用非MyJdbc对象的方法，都应当加上注解！
+                    //所以，只要是调用非MyJdbc对象的方法，都应当加上注解！
                     result = method.invoke(jdbc, args);
                     //cglib由此来看，堪称神器，几乎可以实现任何事情，并能够大大降低开发的风险和难度以及繁琐程度啊！
                 }
