@@ -8,7 +8,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import com.lnwazg.dbkit.anno.entity.Comment;
 import com.lnwazg.dbkit.anno.field.SubClassFieldsFirst;
 
-@Comment("时间戳模板表")
+@Comment("自带插入和更新时间戳的数据库表模板")
 @SubClassFieldsFirst
 public class TimestampEntityTemplate
 {
