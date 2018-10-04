@@ -105,7 +105,7 @@ public class ConnectionManagerImpl extends BasicJdbcSupport implements Connectio
         {
             if (DbKit.DEBUG_MODE)
             {
-                Logs.d("getConnection()   线程本地对象里面有连接，因此不新建，直接使用之！");
+                Logs.d("getConnection()线程本地对象里面有连接，因此不新建，直接使用之！");
             }
             return connection;
         }
@@ -133,14 +133,14 @@ public class ConnectionManagerImpl extends BasicJdbcSupport implements Connectio
         {
             if (DbKit.DEBUG_MODE)
             {
-                Logs.d("close()   线程本地对象里面有连接，因此什么都不做，交由框架去关闭连接！");
+                Logs.d("close()线程本地对象里面有连接，因此什么都不做，交由框架去关闭连接！");
             }
         }
         else
         {
             if (DbKit.DEBUG_MODE)
             {
-                Logs.d("close()   主动关闭连接！");
+                Logs.d("close()主动关闭连接！");
             }
             if (conn != null)
             {

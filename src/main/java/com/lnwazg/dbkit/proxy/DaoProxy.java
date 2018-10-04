@@ -18,6 +18,7 @@ import com.lnwazg.dbkit.anno.dao.handletype.Insert;
 import com.lnwazg.dbkit.anno.dao.handletype.Select;
 import com.lnwazg.dbkit.anno.dao.handletype.Update;
 import com.lnwazg.dbkit.jdbc.MyJdbc;
+import com.lnwazg.dbkit.utils.DbKit;
 import com.lnwazg.dbkit.utils.SqlUtils;
 import com.lnwazg.kit.log.Logs;
 import com.lnwazg.kit.type.BasicType;
@@ -98,16 +99,27 @@ public class DaoProxy
                             if (sqlAndArgs != null)
                             {
                                 sql = sqlAndArgs.getLeft();
-                                Logs.d("DaoProxy 即将执行的sql select语句:" + sql);
+                                if (DbKit.DEBUG_MODE)
+                                {
+                                    Logs.d("DaoProxy 即将执行的sql select语句:" + sql);
+                                }
                                 args = sqlAndArgs.getRight();
-                                Logs.d("参数化查询调整后的args: " + Arrays.toString(args));
+                                if (DbKit.DEBUG_MODE)
+                                {
+                                    Logs.d("参数化查询调整后的args: " + Arrays.toString(args));
+                                }
+                                
                             }
                         }
                         else
                         {
                             //select * from AAA where aa=#{aa} and bb=#{bb}
                             sql = SqlUtils.injectAllParams(method, args, sql);
-                            Logs.d("DaoProxy 即将执行的sql select语句:" + sql);
+                            if (DbKit.DEBUG_MODE)
+                            {
+                                Logs.d("DaoProxy 即将执行的sql select语句:" + sql);
+                            }
+                            
                         }
                     }
                     else
@@ -148,7 +160,10 @@ public class DaoProxy
                             {
                                 //有orderBy部分
                                 String orderByPart = main.substring(main.indexOf("OrderBy") + "OrderBy".length());//IdDescAndNameAsc
-                                Logs.d("orderByPart:" + orderByPart);
+                                if (DbKit.DEBUG_MODE)
+                                {
+                                    Logs.d("orderByPart:" + orderByPart);
+                                }
                                 if (StringUtils.isEmpty(orderByPart))
                                 {
                                     //空，啥也不做
@@ -199,7 +214,11 @@ public class DaoProxy
                                 //无orderBy部分
                                 paramPart = main;
                             }
-                            Logs.d("paramPart:" + paramPart);
+                            if (DbKit.DEBUG_MODE)
+                            {
+                                Logs.d("paramPart:" + paramPart);
+                            }
+                            
                             String[] paramNames = paramPart.split("And");//["Number","Id"]
                             if (paramNames != null && paramNames.length > 0)
                             {
@@ -214,7 +233,10 @@ public class DaoProxy
                                 }
                                 sql = paramPartSql.append(orderByPartSql).toString();
                                 sqlNeedFillTableName = true;
-                                Logs.d("按方法名解析出的sql为:" + sql);
+                                if (DbKit.DEBUG_MODE)
+                                {
+                                    Logs.d("按方法名解析出的sql为:" + sql);
+                                }
                             }
                             else
                             {
@@ -301,7 +323,10 @@ public class DaoProxy
                                 if (sqlNeedFillTableName)
                                 {
                                     sql = sql.replace("$tableName", paramTypeClass.getSimpleName());
-                                    Logs.d("方法名规则查询完整的sql语句为:" + sql);
+                                    if (DbKit.DEBUG_MODE)
+                                    {
+                                        Logs.d("方法名规则查询完整的sql语句为:" + sql);
+                                    }
                                 }
                                 
                                 result = jdbc.list(paramTypeClass, sql, args);
@@ -387,7 +412,11 @@ public class DaoProxy
                             if (sqlNeedFillTableName)
                             {
                                 sql = sql.replace("$tableName", clazz.getSimpleName());
-                                Logs.d("方法名规则查询完整的sql语句为:" + sql);
+                                if (DbKit.DEBUG_MODE)
+                                {
+                                    Logs.d("方法名规则查询完整的sql语句为:" + sql);
+                                }
+                                
                             }
                             result = jdbc.findOne(clazz, sql, args);
                         }
@@ -403,7 +432,10 @@ public class DaoProxy
                 {
                     String sql = method.getAnnotation(Update.class).value();//获取select的sql语句
                     sql = SqlUtils.injectAllParams(method, args, sql);
-                    Logs.d("DaoProxy 即将执行的sql update语句:" + sql);
+                    if (DbKit.DEBUG_MODE)
+                    {
+                        Logs.d("DaoProxy 即将执行的sql update语句:" + sql);
+                    }
                     result = jdbc.update(sql, args);
                 }
                 else
