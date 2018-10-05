@@ -215,8 +215,6 @@ public class DbKit
         if (StringUtils.startsWith(url, "jdbc:mysql"))
         {
             dbType = DbType.mysql;
-            //jdbc:mysql://172.172.178.54:3306/insurance_info
-            //jdbc:mysql://172.172.178.54:3306/insurance_info?useUnicode=true&generateSimpleParameterMetadata=true
             //假如是mysql的数据库
             //则去主动获取到schemaName
             SCHEMA_NAME = StringUtils.substring(url, StringUtils.lastIndexOf(url, "/") + "/".length());

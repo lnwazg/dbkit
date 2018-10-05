@@ -161,7 +161,7 @@ public class SqliteJdbcSupport extends ConnectionManagerImpl implements MyJdbc
             
             //将字段语句列表拼接成一个完整的语句
             String fieldsJoinStr = StringUtils.join(fieldSentences, ",");
-            // COMMENT='保险主商品表'
+            // COMMENT='商品表'
             String sql = String.format("CREATE TABLE IF NOT EXISTS %s (%s)",
                 tableName,
                 fieldsJoinStr);
