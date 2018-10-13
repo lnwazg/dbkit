@@ -335,6 +335,9 @@ public interface BasicJdbc
     int insert(String table, Collection<String> cols, Collection<Collection<?>> args, int batchSize)
         throws SQLException;
         
+    int save(String table, Collection<String> cols, Collection<Collection<?>> args, int batchSize)
+        throws SQLException;
+        
     /**
      * 插入一行数据
      * @param table table
@@ -342,6 +345,9 @@ public interface BasicJdbc
      * @return effect rows result
      */
     int insert(String table, Map<String, Object> columnDataMap)
+        throws SQLException;
+        
+    int save(String table, Map<String, Object> columnDataMap)
         throws SQLException;
         
     /**
@@ -406,6 +412,20 @@ public interface BasicJdbc
     int insert(Object entity)
         throws SQLException;
         
+    int save(Object entity)
+        throws SQLException;
+        
+    /**
+     * 保存或更新，自适应<br>
+     * 若声明了@Id的字段的值非空，则更新；否则，插入新记录
+     * @author nan.li
+     * @param entity
+     * @return
+     * @throws SQLException
+     */
+    int saveOrUpdate(Object entity)
+        throws SQLException;
+        
     /**
      * 批量插入实体类列表到数据库，使用默认的batchSize
      * @author nan.li
@@ -414,6 +434,9 @@ public interface BasicJdbc
      * @throws SQLException
      */
     int insertBatch(List<?> entities)
+        throws SQLException;
+        
+    int saveBatch(List<?> entities)
         throws SQLException;
         
     /**
@@ -425,6 +448,9 @@ public interface BasicJdbc
      * @throws SQLException
      */
     int insertBatch(List<?> entities, int batchSize)
+        throws SQLException;
+        
+    int saveBatch(List<?> entities, int batchSize)
         throws SQLException;
         
     /**

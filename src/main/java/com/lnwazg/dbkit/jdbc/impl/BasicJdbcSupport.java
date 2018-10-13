@@ -352,6 +352,12 @@ public class BasicJdbcSupport implements BasicJdbc
         return executeBatch(generateInsertSQL(table, cols), batchSize, values.toArray(new Collection<?>[0]));
     }
     
+    public int save(String table, Collection<String> cols, Collection<Collection<?>> values, int batchSize)
+        throws SQLException
+    {
+        return insert(table, cols, values, batchSize);
+    }
+    
     public int insert(String table, Map<String, Object> columnDataMap)
         throws SQLException
     {
@@ -363,6 +369,12 @@ public class BasicJdbcSupport implements BasicJdbc
         }
         String sql = generateInsertSQL(table, columnNames);
         return update(sql, columnValues);
+    }
+    
+    public int save(String table, Map<String, Object> columnDataMap)
+        throws SQLException
+    {
+        return insert(table, columnDataMap);
     }
     
     public int update(final String sql, final Object... values)
@@ -893,10 +905,37 @@ public class BasicJdbcSupport implements BasicJdbc
     }
     
     @Override
+    public int save(Object entity)
+        throws SQLException
+    {
+        return insert(entity);
+    }
+    
+    public int saveOrUpdate(Object entity)
+        throws SQLException
+    {
+        Object idValue = TableUtils.getIdColumnValue(entity);
+        if (idValue != null)
+        {
+            return updateEntity(entity);
+        }
+        else
+        {
+            return save(entity);
+        }
+    }
+    
+    @Override
     public int insertBatch(List<?> entities)
         throws SQLException
     {
         return insertBatch(entities, DbKit.DEFAULT_BATCH_SIZE);
+    }
+    
+    public int saveBatch(List<?> entities)
+        throws SQLException
+    {
+        return insertBatch(entities);
     }
     
     @Override
@@ -909,6 +948,12 @@ public class BasicJdbcSupport implements BasicJdbc
         long end = System.currentTimeMillis();
         Logs.i(String.format("Batch Insert cost %d millseconds!", (end - begin)));
         return result;
+    }
+    
+    public int saveBatch(List<?> entities, int batchSize)
+        throws SQLException
+    {
+        return insertBatch(entities, batchSize);
     }
     
     @Override
