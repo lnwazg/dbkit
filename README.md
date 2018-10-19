@@ -31,4 +31,5 @@
 
 ## TODO: 使用手册：  
 ## TODO: dbkit单独使用的例子
-## TODO:dbkit结合spring使用的例子
+## TODO: dbkit结合spring使用的例子
+## XXX:
