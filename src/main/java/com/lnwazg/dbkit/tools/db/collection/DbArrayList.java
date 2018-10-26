@@ -25,11 +25,6 @@ public class DbArrayList<E> extends CollectionBase implements List<E>
     
     private Class<E> elementClazz;
     
-    public DbArrayList(MyJdbc myJdbc, Class<E> elementClazz)
-    {
-        this(myJdbc, null, elementClazz);
-    }
-    
     /**
      * 构造函数 
      * @param myJdbc      jdbc对象，便于自动持久化表数据
@@ -37,7 +32,8 @@ public class DbArrayList<E> extends CollectionBase implements List<E>
      * @param keyClazz    传入Clazz，主要是为了便于JSON反序列化
      * @param valueClazz  传入Clazz，主要是为了便于JSON反序列化
      */
-    public DbArrayList(MyJdbc myJdbc, Class<? extends DbCollectionTable> tableClazz, Class<E> elementClazz)
+    @SuppressWarnings("unchecked")
+    public DbArrayList(MyJdbc myJdbc, Class<? extends DbCollectionTable> tableClazz, Class<?> elementClazz)
     {
         this.myJdbc = myJdbc;
         if (tableClazz == null)
@@ -46,7 +42,7 @@ public class DbArrayList<E> extends CollectionBase implements List<E>
             Logs.w("未显式指定数据库映射Bean类tableClazz，将使用默认的tableClazz：" + tableClazz);
         }
         this.tableClazz = tableClazz;
-        this.elementClazz = elementClazz;
+        this.elementClazz = (Class<E>)elementClazz;
         this.tableName = TableUtils.getTableName(tableClazz);
         try
         {
@@ -57,6 +53,11 @@ public class DbArrayList<E> extends CollectionBase implements List<E>
         {
             e.printStackTrace();
         }
+    }
+    
+    public DbArrayList(MyJdbc myJdbc, Class<?> elementClazz)
+    {
+        this(myJdbc, null, elementClazz);
     }
     
     @Override

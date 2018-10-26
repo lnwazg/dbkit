@@ -33,11 +33,6 @@ public class DbHashMap<K, V> extends CollectionBase implements Map<K, V>
     
     private Class<V> valueClazz;
     
-    public DbHashMap(MyJdbc myJdbc, Class<K> keyClazz, Class<V> valueClazz)
-    {
-        this(myJdbc, null, keyClazz, valueClazz);
-    }
-    
     /**
      * 构造函数 
      * @param myJdbc      jdbc对象，便于自动持久化表数据
@@ -45,7 +40,8 @@ public class DbHashMap<K, V> extends CollectionBase implements Map<K, V>
      * @param keyClazz    传入Clazz，主要是为了便于JSON反序列化
      * @param valueClazz  传入Clazz，主要是为了便于JSON反序列化
      */
-    public DbHashMap(MyJdbc myJdbc, Class<? extends DbHashMapTable> tableClazz, Class<K> keyClazz, Class<V> valueClazz)
+    @SuppressWarnings("unchecked")
+    public DbHashMap(MyJdbc myJdbc, Class<? extends DbHashMapTable> tableClazz, Class<?> keyClazz, Class<?> valueClazz)
     {
         this.myJdbc = myJdbc;
         if (tableClazz == null)
@@ -66,6 +62,11 @@ public class DbHashMap<K, V> extends CollectionBase implements Map<K, V>
         {
             e.printStackTrace();
         }
+    }
+    
+    public DbHashMap(MyJdbc myJdbc, Class<?> keyClazz, Class<?> valueClazz)
+    {
+        this(myJdbc, null, keyClazz, valueClazz);
     }
     
     @Override
