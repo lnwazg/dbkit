@@ -20,6 +20,7 @@ public class TimestampEntityTemplate
     
     public TimestampEntityTemplate()
     {
+        //初始化为当前时间
         createTime = new Date();
         updateTime = new Date();
     }
