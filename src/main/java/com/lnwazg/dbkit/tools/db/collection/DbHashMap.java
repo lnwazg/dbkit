@@ -54,8 +54,8 @@ public class DbHashMap<K, V> extends CollectionBase implements Map<K, V>
             Logs.w("未显式指定数据库映射Bean类tableClazz，将使用默认的tableClazz：" + tableClazz);
         }
         this.tableClazz = tableClazz;
-        this.keyClazz = (Class<K>)keyClazz;
-        this.valueClazz = (Class<V>)valueClazz;
+        this.keyClazz = keyClazz;
+        this.valueClazz = valueClazz;
         this.tableName = TableUtils.getTableName(tableClazz);
         try
         {
