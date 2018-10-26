@@ -386,7 +386,10 @@ public class OracleJdbcSupport extends ConnectionManagerImpl implements MyJdbc
             }
             return true;
         }
-        return false;
+        else
+        {
+            return false;
+        }
     }
     
     @Override

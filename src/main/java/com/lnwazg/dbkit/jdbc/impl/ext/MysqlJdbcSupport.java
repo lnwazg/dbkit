@@ -310,7 +310,10 @@ public class MysqlJdbcSupport extends ConnectionManagerImpl implements MyJdbc
             }
             return true;
         }
-        return false;
+        else
+        {
+            return false;
+        }
     }
     
     @Override

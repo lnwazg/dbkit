@@ -48,77 +48,78 @@ public class SqliteJdbcSupport extends ConnectionManagerImpl implements MyJdbc
     public boolean createTable(Class<?> tableClazz)
         throws SQLException
     {
-        //获取表名称
-        String tableName = TableUtils.getTableName(tableClazz);
-        
-        //遍历字段，根据字段去建表
-        //获取字段列表
-        Field[] fields = null;
-        boolean subClassFieldsFirst = TableUtils.isSubClassFieldsFirst(tableClazz);
-        if (subClassFieldsFirst)
-        {
-            Logs.i("子类字段顺序优先");
-            fields = ClassKit.getAllDeclaredFieldsSubClassFirst(tableClazz);
-        }
-        else
-        {
-            Logs.i("父类字段顺序优先");
-            fields = ClassKit.getAllDeclaredFieldsParentClassFirst(tableClazz);
-        }
-        
-        List<String> fieldSentences = new ArrayList<>();//字段语句列表
-        List<String> indexStrList = new ArrayList<>();
-        List<String> multipleIndexFieldNames = new ArrayList<>();
-        for (Field field : fields)
-        {
-            field.setAccessible(true);
-            String fieldName = field.getName();
-            boolean primaryKey = field.isAnnotationPresent(Id.class);
-            boolean autoIncrement = field.isAnnotationPresent(AutoIncrement.class);
-            boolean index = field.isAnnotationPresent(Index.class);//是否是索引
-            if (index)
-            {
-                Index indexAnno = field.getAnnotation(Index.class);
-                boolean multiple = indexAnno.multiple();
-                if (!multiple)
-                {
-                    //        CREATE INDEX node_idx ON MESSAGE(node);
-                    //        CREATE INDEX testtable_idx ON testtable(first_col);
-                    //        CREATE INDEX testtable_idx2 ON testtable(first_col ASC,second_col DESC);
-                    indexStrList.add(String.format("CREATE INDEX [%s_%s_idx] ON [%s]([%s])", tableName, fieldName, tableName, fieldName));
-                }
-                else
-                {
-                    multipleIndexFieldNames.add(fieldName);
-                }
-            }
-            String type = "";
-            if (field.getType() == int.class || field.getType() == Integer.class)
-            {
-                type = "integer";
-            }
-            else if (field.getType() == String.class)
-            {
-                type = "text";
-            }
-            else if (field.getType() == byte[].class)
-            {
-                type = "blob";
-            }
-            else if (field.getType() == Date.class)
-            {
-                type = "timestamp default (datetime('now', 'localtime'))";
-            }
-            else
-            {
-                type = "text";
-            }
-            fieldSentences.add(String.format("%s %s%s%s", fieldName, type, (primaryKey ? " primary key" : ""), (autoIncrement ? " autoincrement" : "")));
-        }
-        String fieldsJoinStr = StringUtils.join(fieldSentences, ",");//将字段语句列表拼接成一个完整的语句
         boolean done = checkTableExists(tableClazz);//建表任务是否已经完成
         if (!done)
         {
+            //获取表名称
+            String tableName = TableUtils.getTableName(tableClazz);
+            
+            //遍历字段，根据字段去建表
+            //获取字段列表
+            Field[] fields = null;
+            boolean subClassFieldsFirst = TableUtils.isSubClassFieldsFirst(tableClazz);
+            if (subClassFieldsFirst)
+            {
+                Logs.i("子类字段顺序优先");
+                fields = ClassKit.getAllDeclaredFieldsSubClassFirst(tableClazz);
+            }
+            else
+            {
+                Logs.i("父类字段顺序优先");
+                fields = ClassKit.getAllDeclaredFieldsParentClassFirst(tableClazz);
+            }
+            
+            List<String> fieldSentences = new ArrayList<>();//字段语句列表
+            List<String> indexStrList = new ArrayList<>();
+            List<String> multipleIndexFieldNames = new ArrayList<>();
+            for (Field field : fields)
+            {
+                field.setAccessible(true);
+                String fieldName = field.getName();
+                boolean primaryKey = field.isAnnotationPresent(Id.class);
+                boolean autoIncrement = field.isAnnotationPresent(AutoIncrement.class);
+                boolean index = field.isAnnotationPresent(Index.class);//是否是索引
+                if (index)
+                {
+                    Index indexAnno = field.getAnnotation(Index.class);
+                    boolean multiple = indexAnno.multiple();
+                    if (!multiple)
+                    {
+                        //CREATE INDEX node_idx ON MESSAGE(node);
+                        //CREATE INDEX testtable_idx ON testtable(first_col);
+                        //CREATE INDEX testtable_idx2 ON testtable(first_col ASC,second_col DESC);
+                        indexStrList.add(String.format("CREATE INDEX [%s_%s_idx] ON [%s]([%s])", tableName, fieldName, tableName, fieldName));
+                    }
+                    else
+                    {
+                        multipleIndexFieldNames.add(fieldName);
+                    }
+                }
+                String type = "";
+                if (field.getType() == int.class || field.getType() == Integer.class)
+                {
+                    type = "integer";
+                }
+                else if (field.getType() == String.class)
+                {
+                    type = "text";
+                }
+                else if (field.getType() == byte[].class)
+                {
+                    type = "blob";
+                }
+                else if (field.getType() == Date.class)
+                {
+                    type = "timestamp default (datetime('now', 'localtime'))";
+                }
+                else
+                {
+                    type = "text";
+                }
+                fieldSentences.add(String.format("%s %s%s%s", fieldName, type, (primaryKey ? " primary key" : ""), (autoIncrement ? " autoincrement" : "")));
+            }
+            String fieldsJoinStr = StringUtils.join(fieldSentences, ",");//将字段语句列表拼接成一个完整的语句
+            
             //如果还没有完成
             String sql = String.format("CREATE TABLE IF NOT EXISTS %s (%s)", tableName, fieldsJoinStr);
             System.out.println(String.format("即将执行：%s", sql));
@@ -141,7 +142,10 @@ public class SqliteJdbcSupport extends ConnectionManagerImpl implements MyJdbc
             }
             return true;
         }
-        return false;
+        else
+        {
+            return false;
+        }
     }
     
     @Override
