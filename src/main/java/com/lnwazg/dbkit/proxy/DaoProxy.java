@@ -18,6 +18,7 @@ import com.lnwazg.dbkit.anno.dao.handletype.Insert;
 import com.lnwazg.dbkit.anno.dao.handletype.Select;
 import com.lnwazg.dbkit.anno.dao.handletype.Update;
 import com.lnwazg.dbkit.jdbc.MyJdbc;
+import com.lnwazg.dbkit.jdbc.impl.ext.SqliteJdbcSupport;
 import com.lnwazg.dbkit.utils.DbKit;
 import com.lnwazg.dbkit.utils.SqlUtils;
 import com.lnwazg.kit.log.Logs;
@@ -37,7 +38,6 @@ import net.sf.cglib.proxy.MethodProxy;
  */
 public class DaoProxy
 {
-    
     /**
      * 代理某个DAO的class，让targetClass拥有参数jdbc对象的能力
      * @author nan.li
@@ -45,9 +45,42 @@ public class DaoProxy
      * @param jdbc 需要执行查询的jdbc对象
      * @return
      */
-    @SuppressWarnings("unchecked")
     public static <T> T proxyDaoInterface(Class<T> targetClass, MyJdbc jdbc)
     {
+        if (jdbc == null)
+        {
+            Logs.e("jdbc param should not be empty!");
+            return null;
+        }
+        if (jdbc instanceof SqliteJdbcSupport)
+        {
+            Logs.i("当前使用的是SQLite数据库，写同步配置为：" + DbKit.SQLITE_SYNC_WRITE);
+            //自适应对SQLite写操作是否加锁
+            return proxyDaoInterface(targetClass, jdbc, DbKit.SQLITE_SYNC_WRITE);
+        }
+        else
+        {
+            //对写操作不需要加锁
+            return proxyDaoInterface(targetClass, jdbc, false);
+        }
+    }
+    
+    /**
+     * 代理某个DAO的class，让targetClass拥有参数jdbc对象的能力
+     * @author nan.li
+     * @param targetClass
+     * @param jdbc
+     * @param syncWrite 是否同步写入操作
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T proxyDaoInterface(Class<T> targetClass, MyJdbc jdbc, boolean syncWrite)
+    {
+        if (syncWrite)
+        {
+            Logs.i("DaoProxy将为被代理类：" + targetClass.getName() + "的方法开启全局写同步...");
+        }
+        
         MethodInterceptor methodInterceptor = new MethodInterceptor()
         {
             @Override
@@ -55,24 +88,16 @@ public class DaoProxy
                 throws Throwable
             {
                 //代理类里出现的异常不可以掩盖，必须全部抛给上层去处理！
-                //因此任何异常都需要抛出给上层。必要的时候甚至可以不抓取任何异常！因为这个代理的方法 throws Throwable
+                //因此任何异常都需要抛出给上层。必要的时候甚至可以不抓取任何异常！
+                //因为这个代理的方法 throws Throwable
                 /**
                  *  什么时候使用事务?
                  *  当你需要一次执行多条SQL语句时，可以使用事务。
                  *  通俗一点说，就是，如果这几条SQL语句全部执行成功，则才对数据库进行一次更新，如果有一条SQL语句执行失败，则这几条SQL语句全部不进行执行，这个时候需要用到事务。
                  */
                 //Logs.i(String.format("Begin to invoke proxy method: %s", method.getName()));
-                Object result = null;
                 
-                //因为这个是一个接口，因此父类不可以直接被调用
-                //传统的直接调用原对象的方法如下：
-                //try
-                //{
-                //    result = proxy.invokeSuper(obj, args);
-                //}
-                //finally
-                //{
-                //}
+                Object result = null;
                 
                 //如果有select操作
                 if (method.isAnnotationPresent(Select.class))
@@ -425,9 +450,35 @@ public class DaoProxy
                 }
                 else if (method.isAnnotationPresent(Insert.class))
                 {
+                    //待实现
+                    if (syncWrite)
+                    {
+                        synchronized (DaoProxy.class)
+                        {
+                            Logs.i("对SQLite加了@Insert的写操作加同步锁...写操作的方法为:" + method.getName());
+                            //result = jdbc.update(sql, args);
+                        }
+                    }
+                    else
+                    {
+                        //result = jdbc.update(sql, args);
+                    }
                 }
                 else if (method.isAnnotationPresent(Delete.class))
                 {
+                    //待实现
+                    if (syncWrite)
+                    {
+                        synchronized (DaoProxy.class)
+                        {
+                            Logs.i("对SQLite加了@Delete的写操作加同步锁...写操作的方法为:" + method.getName());
+                            //result = jdbc.update(sql, args);
+                        }
+                    }
+                    else
+                    {
+                        //result = jdbc.update(sql, args);
+                    }
                 }
                 else if (method.isAnnotationPresent(Update.class))
                 {
@@ -437,24 +488,88 @@ public class DaoProxy
                     {
                         Logs.d("DaoProxy 即将执行的sql update语句:" + sql);
                     }
-                    result = jdbc.update(sql, args);
+                    if (syncWrite)
+                    {
+                        synchronized (DaoProxy.class)
+                        {
+                            Logs.i("对SQLite加了@Update的写操作加同步锁...写操作的方法为:" + method.getName());
+                            result = jdbc.update(sql, args);
+                        }
+                    }
+                    else
+                    {
+                        result = jdbc.update(sql, args);
+                    }
                 }
                 else
                 {
                     //非注解类型，则要调用的MyJdbc对象的方法
                     //所以，只要是调用非MyJdbc对象的方法，都应当加上注解！
-                    result = method.invoke(jdbc, args);
-                    //cglib由此来看，堪称神器，几乎可以实现任何事情，并能够大大降低开发的风险和难度以及繁琐程度啊！
+                    
+                    //是否应该对没加注解的DAO操作（也就是MyJdbc接口的自有方法）加上同步操作
+                    boolean shouldSyncNonAnnoMethod = false;
+                    //若需同步写
+                    if (syncWrite)
+                    {
+                        //判定当前操作是否是写操作
+                        boolean isWriteOperation = judgeWriteOperation(method.getName());
+                        shouldSyncNonAnnoMethod = isWriteOperation;
+                    }
+                    
+                    if (shouldSyncNonAnnoMethod)
+                    {
+                        //若是写操作，那么得加锁访问原方法
+                        synchronized (DaoProxy.class)
+                        {
+                            Logs.i("对SQLite写操作加同步锁...写操作的方法为:" + method.getName());
+                            result = method.invoke(jdbc, args);
+                        }
+                    }
+                    else
+                    {
+                        //不是写操作，那么普通访问原方法
+                        result = method.invoke(jdbc, args);
+                    }
                 }
                 return result;
             }
         };
+        
         Enhancer enhancer = new Enhancer();
         enhancer.setSuperclass(targetClass);//设置动态代理的父类信息
         // 回调方法
         enhancer.setCallback(methodInterceptor);//设置方法过滤器
         // 创建代理对象
         return (T)enhancer.create();
+    }
+    
+    /**
+     * 查询操作的方法名前缀数组
+     */
+    static String[] selectOpPrefixs = {"checkTableExists", "load", "find", "count", "list", "query", "contains",
+        "toString", "getClass", "hashCode", "equals", "clone", "notify", "wait", "finalize"};
+    
+    /**
+     * 判断MyJdbc中的某个方法是否是写入的操作
+     * @author nan.li
+     * @param name
+     * @return
+     */
+    protected static boolean judgeWriteOperation(String methodName)
+    {
+        //是否select操作的判定结果
+        boolean isSelectOps = false;
+        for (String opPrefix : selectOpPrefixs)
+        {
+            if (methodName.startsWith(opPrefix))
+            {
+                isSelectOps = true;
+                break;
+            }
+        }
+        boolean finalResult = !isSelectOps;
+        Logs.i("judgeWriteOperation methodName=" + methodName + " result=" + finalResult);
+        return finalResult;
     }
     
     /**

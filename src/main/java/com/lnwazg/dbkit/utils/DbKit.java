@@ -15,6 +15,7 @@ import com.lnwazg.dbkit.jdbc.impl.ext.OracleJdbcSupport;
 import com.lnwazg.dbkit.jdbc.impl.ext.SqliteJdbcSupport;
 import com.lnwazg.dbkit.proxy.DaoProxy;
 import com.lnwazg.dbkit.proxy.ServiceProxy;
+import com.lnwazg.dbkit.proxy.sqlite.SQLiteSyncWriteAccessDao;
 import com.lnwazg.dbkit.tools.sqlmonitor.SQLMonitor;
 import com.lnwazg.kit.log.Logs;
 import com.lnwazg.kit.property.PropertyUtils;
@@ -67,7 +68,7 @@ public class DbKit
      * 对于SQLITE数据库，是否对写操作进行同步<br>
      * 默认开启同步，防止并发写对SQLITE带来的问题
      */
-    private static boolean SQLITE_SYNC_WRITE = true;
+    public static boolean SQLITE_SYNC_WRITE = true;
     
     /**
      * 加载默认配置位置的数据源
@@ -79,9 +80,24 @@ public class DbKit
         return getDataSource(DEFAULT_CONFIG_FILEPATH);
     }
     
+    /**
+     * 从默认配置中获取MyJdbc对象
+     * @author nan.li
+     * @return
+     */
     public static MyJdbc getDefaultJdbc()
     {
         return getJdbc(DEFAULT_CONFIG_FILEPATH);
+    }
+    
+    /**
+     * 获取SQLite写同步的MyJdbc代理
+     * @author nan.li
+     * @return
+     */
+    public MyJdbc getSQLiteSyncWriteMyJdbcProxy(MyJdbc myJdbc)
+    {
+        return DaoProxy.proxyDaoInterface(SQLiteSyncWriteAccessDao.class, myJdbc);//根据接口生成动态代理类
     }
     
     /**
@@ -166,11 +182,6 @@ public class DbKit
                         return new OracleJdbcSupport(datasource, SCHEMA_NAME);
                     case sqlite:
                         MyJdbc myJdbc = new SqliteJdbcSupport(datasource, SCHEMA_NAME);
-                        if (SQLITE_SYNC_WRITE)
-                        {
-                            myJdbc = DaoProxy.proxyDaoInterface(SqliteJdbcSupport.class, myJdbc);
-                        }
-                        
                         myJdbc.execute("PRAGMA synchronous=OFF;");//关闭同步，进入sqlite的极速模式！
                         myJdbc.execute("PRAGMA journal_mode=WAL;");//write ahead log，性能大幅增强
                         return myJdbc;
