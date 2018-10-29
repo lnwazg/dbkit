@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import com.lnwazg.dbkit.jdbc.MyJdbc;
 import com.lnwazg.dbkit.tools.dbcache.tablemap.entity.DbConfig;
 import com.lnwazg.kit.converter.abst.AbstractDbConverter;
+import com.lnwazg.kit.gson.GsonKit;
 import com.lnwazg.kit.singleton.B;
 
 /**
@@ -45,6 +46,13 @@ public class DBConfigHelper extends AbstractDbConverter
         dbConfigKeyValueTimeMap.put(key, value);
     }
     
+    public void put(String key, Object value)
+        throws SQLException
+    {
+        String valueStr = GsonKit.gson.toJson(value);
+        put(key, valueStr);
+    }
+    
     /**
      * 设置键值对
      * @author nan.li
@@ -53,6 +61,12 @@ public class DBConfigHelper extends AbstractDbConverter
      * @throws SQLException 
      */
     public void set(String key, String value)
+        throws SQLException
+    {
+        put(key, value);
+    }
+    
+    public void set(String key, Object value)
         throws SQLException
     {
         put(key, value);

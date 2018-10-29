@@ -78,14 +78,14 @@ public class DbKeyValueTime<V>
             keyValueTimeTable = ClassKit.newInstance(tableClazz);
             keyValueTimeTable.setStrKey(key);
             keyValueTimeTable.setStrValue(valueStr);
-            keyValueTimeTable.setCreateTime(new Date());
+            keyValueTimeTable.setUpdateTime(new Date());
             myJdbc.insert(keyValueTimeTable);
         }
         else
         {
             //该键值对已经存在，则更新之
             keyValueTimeTable.setStrValue(valueStr);
-            keyValueTimeTable.setCreateTime(new Date());
+            keyValueTimeTable.setUpdateTime(new Date());
             myJdbc.updateEntity(keyValueTimeTable);
         }
     }
@@ -110,7 +110,7 @@ public class DbKeyValueTime<V>
             // 当前时间
             long now = System.currentTimeMillis();
             // 放入的时间
-            long putTime = keyValueTimeTable.getCreateTime().getTime();
+            long putTime = keyValueTimeTable.getUpdateTime().getTime();
             // 时间差
             long deltaTimeInMills = now - putTime; // 时间差
             // 超过如下毫秒数则认为缓存已经过期

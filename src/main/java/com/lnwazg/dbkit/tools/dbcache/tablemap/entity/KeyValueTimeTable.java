@@ -30,8 +30,8 @@ public class KeyValueTimeTable
     @Comment("值")
     String strValue;
     
-    @Comment("创建时间")
-    Date createTime;
+    @Comment("更新时间")
+    Date updateTime;
     
     public Integer getId()
     {
@@ -63,14 +63,14 @@ public class KeyValueTimeTable
         this.strValue = strValue;
     }
     
-    public Date getCreateTime()
+    public Date getUpdateTime()
     {
-        return createTime;
+        return updateTime;
     }
     
-    public void setCreateTime(Date createTime)
+    public void setUpdateTime(Date createTime)
     {
-        this.createTime = createTime;
+        this.updateTime = createTime;
     }
     
     @Override
@@ -78,5 +78,4 @@ public class KeyValueTimeTable
     {
         return ToStringBuilder.reflectionToString(this, ToStringStyle.JSON_STYLE);
     }
-    
 }
