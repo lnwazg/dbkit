@@ -37,6 +37,7 @@ import net.sf.cglib.proxy.MethodProxy;
  */
 public class DaoProxy
 {
+    
     /**
      * 代理某个DAO的class，让targetClass拥有参数jdbc对象的能力
      * @author nan.li

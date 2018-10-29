@@ -1,8 +1,7 @@
-package com.lnwazg.dbkit.tools.ioc.component.entity;
+package com.lnwazg.dbkit.tools.dbcache.tablemap.entity;
 
 import com.lnwazg.dbkit.anno.entity.Comment;
 import com.lnwazg.dbkit.anno.entity.Varchar;
-import com.lnwazg.dbkit.tools.dbcache.tablemap.entity.KeyValueTimeTable;
 
 @Comment("数据库配置信息表")
 public class DbConfig extends KeyValueTimeTable

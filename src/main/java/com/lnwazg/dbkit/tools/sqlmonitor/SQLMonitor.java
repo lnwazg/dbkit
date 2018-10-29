@@ -3,7 +3,6 @@ package com.lnwazg.dbkit.tools.sqlmonitor;
 import java.io.IOException;
 
 import com.lnwazg.dbkit.utils.DbKit;
-import com.lnwazg.httpkit.Constants;
 import com.lnwazg.httpkit.server.HttpServer;
 import com.lnwazg.kit.http.net.NetUtil;
 import com.lnwazg.kit.log.Logs;

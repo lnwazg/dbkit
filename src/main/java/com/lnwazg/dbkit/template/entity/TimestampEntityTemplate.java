@@ -1,4 +1,4 @@
-package com.lnwazg.dbkit.tools.entity.template;
+package com.lnwazg.dbkit.template.entity;
 
 import java.util.Date;
 

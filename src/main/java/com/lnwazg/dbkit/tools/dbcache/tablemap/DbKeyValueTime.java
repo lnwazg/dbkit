@@ -71,7 +71,6 @@ public class DbKeyValueTime<V>
     {
         //统一转为json形式储存，这样就可以无差别操作
         String valueStr = GsonKit.gson.toJson(value);
-        //        KeyValueTimeTable keyValueTimeTable =myJdbc.findOne(tableClazz, String.format("select * from %s where strKey='%s'", TableUtils.getTableName(tableClazz), key));
         KeyValueTimeTable keyValueTimeTable = myJdbc.findOneNoSql(tableClazz, "strKey", key);
         if (keyValueTimeTable == null)
         {

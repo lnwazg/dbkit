@@ -64,6 +64,12 @@ public class DbKit
     public static boolean SQL_MONITOR = false;
     
     /**
+     * 对于SQLITE数据库，是否对写操作进行同步<br>
+     * 默认开启同步，防止并发写对SQLITE带来的问题
+     */
+    private static boolean SQLITE_SYNC_WRITE = true;
+    
+    /**
      * 加载默认配置位置的数据源
      * @author nan.li
      * @return
@@ -160,6 +166,11 @@ public class DbKit
                         return new OracleJdbcSupport(datasource, SCHEMA_NAME);
                     case sqlite:
                         MyJdbc myJdbc = new SqliteJdbcSupport(datasource, SCHEMA_NAME);
+                        if (SQLITE_SYNC_WRITE)
+                        {
+                            myJdbc = DaoProxy.proxyDaoInterface(SqliteJdbcSupport.class, myJdbc);
+                        }
+                        
                         myJdbc.execute("PRAGMA synchronous=OFF;");//关闭同步，进入sqlite的极速模式！
                         myJdbc.execute("PRAGMA journal_mode=WAL;");//write ahead log，性能大幅增强
                         return myJdbc;
