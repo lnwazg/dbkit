@@ -255,5 +255,4 @@ public class SqliteJdbcSupport extends ConnectionManagerImpl implements MyJdbc
     {
         throw new UnsupportedOperationException("该方法尚不支持sqlite数据库！Not implemented yet");
     }
-    
 }

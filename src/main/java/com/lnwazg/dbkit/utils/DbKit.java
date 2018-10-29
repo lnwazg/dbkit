@@ -95,7 +95,7 @@ public class DbKit
      * @author nan.li
      * @return
      */
-    public MyJdbc getSQLiteSyncWriteMyJdbcProxy(MyJdbc myJdbc)
+    public static SQLiteSyncWriteAccessDao getSQLiteSyncWriteMyJdbcProxy(MyJdbc myJdbc)
     {
         return DaoProxy.proxyDaoInterface(SQLiteSyncWriteAccessDao.class, myJdbc);//根据接口生成动态代理类
     }

@@ -535,5 +535,4 @@ public class TableUtils
         }
         return isSubClassFieldsFirst;
     }
-    
 }

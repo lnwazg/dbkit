@@ -6,69 +6,70 @@ import com.lnwazg.dbkit.jdbc.MyJdbc;
 import com.lnwazg.dbkit.tools.dbcache.tablemap.entity.DbConfig;
 import com.lnwazg.kit.converter.abst.AbstractDbConverter;
 import com.lnwazg.kit.gson.GsonKit;
-import com.lnwazg.kit.singleton.B;
+import com.lnwazg.kit.log.Logs;
 
 /**
- * 数据库的配置类<br>
- * 使用前需要保证MyJdbc已经被优先注入，然后就可以注册DBConfigHelper了<br>
- *   MyJdbc jdbc = DbKit.getJdbc(Constants.DB_CONFIG_FILE_NAME);//获取jdbc对象实例<br>
-     B.s(MyJdbc.class, jdbc);//注册jdbc对象实例<br>
-     B.s(DBConfigHelper.class);//注册DBConfigHelper<br>
-   在任意类中使用DBConfigHelper的方法：<br>
-   先声明，再使用即可：DBConfigHelper dbConfigHelper = B.g(DBConfigHelper.class);<br>     
+ * 数据库的配置类
  * @author nan.li
  * @version 2017年7月22日
  */
 public class DBConfigHelper extends AbstractDbConverter
 {
-    /**
-     * token-登录信息表
-     */
-    DbKeyValueTime<String> dbConfigKeyValueTimeMap = new DbKeyValueTime<String>(B.get(MyJdbc.class), DbConfig.class, String.class);
+    DbKeyValueTime<String> dbConfigKeyValueTimeMap;
+    
+    public DBConfigHelper(MyJdbc myJdbc)
+    {
+        dbConfigKeyValueTimeMap = new DbKeyValueTime<String>(myJdbc, DbConfig.class, String.class);
+    }
     
     @Override
     public Object convertValue(String key)
-        throws SQLException
     {
-        return dbConfigKeyValueTimeMap.get(key);
-    }
-    
-    /**
-     * 放入键值对
-     * @author nan.li
-     * @param key
-     * @param value
-     * @throws SQLException 
-     */
-    public void put(String key, String value)
-        throws SQLException
-    {
-        dbConfigKeyValueTimeMap.put(key, value);
+        //异常在内部捕捉，降低外层使用难度，像使用普通数据一样操作DB数据
+        try
+        {
+            return dbConfigKeyValueTimeMap.get(key);
+        }
+        catch (SQLException e)
+        {
+            Logs.e(e);
+        }
+        return null;
     }
     
     public void put(String key, Object value)
-        throws SQLException
     {
+        //异常在内部捕捉，降低外层使用难度，像使用普通数据一样操作DB数据
         String valueStr = GsonKit.gson.toJson(value);
-        put(key, valueStr);
-    }
-    
-    /**
-     * 设置键值对
-     * @author nan.li
-     * @param key
-     * @param value
-     * @throws SQLException 
-     */
-    public void set(String key, String value)
-        throws SQLException
-    {
-        put(key, value);
+        try
+        {
+            dbConfigKeyValueTimeMap.put(key, valueStr);
+        }
+        catch (SQLException e)
+        {
+            Logs.e(e);
+        }
     }
     
     public void set(String key, Object value)
-        throws SQLException
     {
         put(key, value);
+    }
+    
+    public void remove(String key)
+    {
+        try
+        {
+            dbConfigKeyValueTimeMap.del(key);
+        }
+        catch (SQLException e)
+        {
+            Logs.e(e);
+        }
+    }
+    
+    public void del(String key)
+    {
+        remove(key);
     }
 }

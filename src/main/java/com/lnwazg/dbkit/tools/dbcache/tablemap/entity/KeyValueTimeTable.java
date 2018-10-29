@@ -9,6 +9,7 @@ import com.lnwazg.dbkit.anno.entity.AutoIncrement;
 import com.lnwazg.dbkit.anno.entity.Comment;
 import com.lnwazg.dbkit.anno.entity.Id;
 import com.lnwazg.dbkit.anno.entity.Varchar;
+import com.lnwazg.dbkit.anno.field.ParentClassFieldsFirst;
 
 /**
  * 键值对跟时间戳的表<br>
@@ -16,6 +17,7 @@ import com.lnwazg.dbkit.anno.entity.Varchar;
  * @author nan.li
  * @version 2017年4月8日
  */
+@ParentClassFieldsFirst
 public class KeyValueTimeTable
 {
     @Id
