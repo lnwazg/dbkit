@@ -14,6 +14,7 @@
 - 基于DB Table的持久化集合框架支持
 - 方便的数据库默认配置表工具DBConfigHelper
 - 支持方法命名规则查询，例如:findByNameAndAgeOrderByIdDesc
+- 支持方法命名规则查询增强，可查询所有（由findBy简化为find），语法为：find、query、findOrderByIdAndName、queryOrderByIdAndName（2019-2-15）
 - 自带Bad SQL性能监控UI控制台，当激活“SQL_MONITOR”选项后SQL控制台也会启动，方便实时监控优化SQL性能
 - 支持内建的性能监测http接口，可视化查看数据库查询性能
 - 内置性能监控模块端口号可自适应(2018-9-19)

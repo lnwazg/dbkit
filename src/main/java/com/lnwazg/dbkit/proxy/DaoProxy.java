@@ -65,6 +65,16 @@ public class DaoProxy
         }
     }
     
+    private static final String ORDER_BY = "OrderBy";
+    
+    private static final String FIND_BY = "findBy";
+    
+    private static final String QUERY_BY = "queryBy";
+    
+    private static final String FIND = "find";
+    
+    private static final String QUERY = "query";
+    
     /**
      * 代理某个DAO的class，让targetClass拥有参数jdbc对象的能力
      * @author nan.li
@@ -102,12 +112,17 @@ public class DaoProxy
                 //如果有select操作
                 if (method.isAnnotationPresent(Select.class))
                 {
-                    String sql = method.getAnnotation(Select.class).value();//获取select的sql语句
+                    //获取select的sql语句
+                    String sql = method.getAnnotation(Select.class).value();
                     
-                    boolean sqlNeedFillTableName = false;//sql中是否有必要填充入表名(方法名规则查询必备)
+                    //sql中是否有必要填充入表名(方法名规则查询必备)
+                    boolean sqlNeedFillTableName = false;
                     
                     if (StringUtils.isNotEmpty(sql))
                     {
+                        //有sql，因此按有SQL的方式进行处理
+                        //sql需要再度加工
+                        
                         //sql中可能有问号，也可能没问号
                         //有问号，是按参数index传递。没问号的，是拼接sql
                         
@@ -134,7 +149,6 @@ public class DaoProxy
                                 {
                                     Logs.d("参数化查询调整后的args: " + Arrays.toString(args));
                                 }
-                                
                             }
                         }
                         else
@@ -145,22 +159,37 @@ public class DaoProxy
                             {
                                 Logs.d("DaoProxy 即将执行的sql select语句:" + sql);
                             }
-                            
                         }
                     }
                     else
                     {
                         //sql为空，那么将采用方法名规则解析出对应的sql语句
                         //这种按名称解析sql逻辑的方法是一种更强大的高级DAO编程手法！
+                        //借鉴了spring-data-jpa的按方法名生成查询逻辑
+                        
                         String methodName = method.getName();
+                        
                         String methodStart = "";
-                        if (StringUtils.startsWith(methodName, "queryBy"))
+                        
+                        if (StringUtils.startsWith(methodName, QUERY))
                         {
-                            methodStart = "queryBy";
+                            //QUERY ALL
+                            methodStart = QUERY;
                         }
-                        else if (StringUtils.startsWith(methodName, "findBy"))
+                        if (StringUtils.startsWith(methodName, FIND))
                         {
-                            methodStart = "findBy";
+                            //QUERY ALL
+                            methodStart = FIND;
+                        }
+                        if (StringUtils.startsWith(methodName, QUERY_BY))
+                        {
+                            //QUERY BY CONDITION
+                            methodStart = QUERY_BY;
+                        }
+                        else if (StringUtils.startsWith(methodName, FIND_BY))
+                        {
+                            //QUERY BY CONDITION
+                            methodStart = FIND_BY;
                         }
                         else
                         {
@@ -168,24 +197,40 @@ public class DaoProxy
                             return null;
                         }
                         
+                        //query
+                        //find
+                        //queryOrderByIdDesc
+                        //queryOrderByIdDescAndNameAsc
                         //queryByNumberAndId
                         //queryByNumberAndIdOrderByIdDescAndNameAsc
                         //queryByNumberAndIdOrderByIdDesc
                         
-                        String main = methodName.substring(methodStart.length());//NumberAndId
-                        if (StringUtils.isEmpty(main))
+                        String allPart = methodName.substring(methodStart.length());//参数+排序这两部分
+                        //
+                        //OrderByIdDesc
+                        //OrderByIdDescAndNameAsc
+                        //NumberAndId
+                        //NumberAndIdOrderByIdDescAndNameAsc
+                        
+                        String paramPart = "";//参数部分                    //NumberAndId  
+                        String orderByPart = null;//排序部分        //IdDescAndNameAsc
+                        
+                        StringBuilder paramPartSql = new StringBuilder();
+                        paramPartSql.append("select * from $tableName where 1=1");
+                        
+                        StringBuilder orderByPartSql = new StringBuilder();
+                        
+                        if (StringUtils.isEmpty(allPart))
                         {
-                            Logs.e("按方法名规则进行查询，方法参数主体为空，无法执行查询！");
-                            return null;
+                            //do nothing
+                            //直接查全表
                         }
                         else
                         {
-                            StringBuilder orderByPartSql = new StringBuilder();
-                            String paramPart = "";//NumberAndId  //参数部分
-                            if (main.indexOf("OrderBy") != -1)
+                            if (allPart.indexOf(ORDER_BY) != -1)
                             {
                                 //有orderBy部分
-                                String orderByPart = main.substring(main.indexOf("OrderBy") + "OrderBy".length());//IdDescAndNameAsc
+                                orderByPart = allPart.substring(allPart.indexOf(ORDER_BY) + ORDER_BY.length());//IdDescAndNameAsc
                                 if (DbKit.DEBUG_MODE)
                                 {
                                     Logs.d("orderByPart:" + orderByPart);
@@ -203,7 +248,7 @@ public class DaoProxy
                                         orderByPartSql.append(" order by ");
                                         for (String orderBy : orderBys)
                                         {
-                                            //要么以Desc结尾，要么以Asc结尾，必须显式指定排序方式
+                                            //要么以Desc结尾，要么以Asc结尾。若不显式指定，则默认为Asc
                                             if (StringUtils.endsWith(orderBy, "Desc"))
                                             {
                                                 String fieldName = orderBy.substring(0, orderBy.lastIndexOf("Desc"));
@@ -222,8 +267,12 @@ public class DaoProxy
                                             }
                                             else
                                             {
-                                                Logs.e("非法的orderBy参数名！");
-                                                return null;
+                                                //既不以Desc结尾也不以Asc结尾，则默认为Asc升序排序
+                                                String fieldName = orderBy;
+                                                if (StringUtils.isNotEmpty(fieldName))
+                                                {
+                                                    orderByPartSql.append(fieldName).append(" Asc,");
+                                                }
                                             }
                                         }
                                         orderByPartSql.deleteCharAt(orderByPartSql.length() - 1);//删掉最后一个orderBy后面的逗号
@@ -233,42 +282,52 @@ public class DaoProxy
                                         //空，啥也不做
                                     }
                                 }
-                                paramPart = main.substring(0, main.indexOf("OrderBy"));
+                                paramPart = allPart.substring(0, allPart.indexOf(ORDER_BY));
                             }
                             else
                             {
                                 //无orderBy部分
-                                paramPart = main;
+                                //orderByPartSql依然为初始化状态：空
+                                paramPart = allPart;
                             }
+                            
                             if (DbKit.DEBUG_MODE)
                             {
                                 Logs.d("paramPart:" + paramPart);
                             }
                             
-                            String[] paramNames = paramPart.split("And");//["Number","Id"]
-                            if (paramNames != null && paramNames.length > 0)
+                            if (StringUtils.isEmpty(paramPart))
                             {
-                                StringBuilder paramPartSql = new StringBuilder();
-                                paramPartSql.append("select * from $tableName where 1=1");
-                                for (String paramName : paramNames)
-                                {
-                                    if (StringUtils.isNotEmpty(paramName))
-                                    {
-                                        paramPartSql.append(" and ").append(paramName.toLowerCase()).append("=?");
-                                    }
-                                }
-                                sql = paramPartSql.append(orderByPartSql).toString();
-                                sqlNeedFillTableName = true;
-                                if (DbKit.DEBUG_MODE)
-                                {
-                                    Logs.d("按方法名解析出的sql为:" + sql);
-                                }
+                                //do nothing
+                                //直接查全表
                             }
                             else
                             {
-                                Logs.e("分割后无法解析paramNames!");
-                                return null;
+                                String[] paramNames = paramPart.split("And");//["Number","Id"]
+                                if (paramNames != null && paramNames.length > 0)
+                                {
+                                    for (String paramName : paramNames)
+                                    {
+                                        if (StringUtils.isNotEmpty(paramName))
+                                        {
+                                            paramPartSql.append(" and ").append(paramName.toLowerCase()).append("=?");
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    Logs.e("分割后无法解析paramNames!");
+                                    return null;
+                                }
                             }
+                        }
+                        
+                        sql = paramPartSql.append(orderByPartSql).toString();
+                        sqlNeedFillTableName = true;
+                        
+                        if (DbKit.DEBUG_MODE)
+                        {
+                            Logs.d("按方法名解析出的sql为:" + sql);
                         }
                     }
                     
@@ -345,7 +404,6 @@ public class DaoProxy
                                 Class<?> paramTypeClass = (Class<?>)firstTypeArgument;//获取参数类型的实例Class
                                 //List<Jyj> jyjs = jdbc.list(new ResultSetObjectFieldNameMapper<Jyj>(Jyj.class), "select * from activity_jyj");
                                 //                                result = jdbc.list(new ResultSetToObjectMapper<>(paramTypeClass), sql);
-                                
                                 if (sqlNeedFillTableName)
                                 {
                                     sql = sql.replace("$tableName", paramTypeClass.getSimpleName());
