@@ -29,7 +29,7 @@ public interface BasicJdbc
      */
     <T> T load(Class<T> clazz, Object id)
         throws SQLException;
-        
+    
     /**
      * 根据sql条件和参数查询单个实体对象
      * @author nan.li
@@ -41,7 +41,7 @@ public interface BasicJdbc
      */
     <T> T findOne(ResultSetResolve<T> ro, String sql, Object... args)
         throws SQLException;
-        
+    
     /**
      * 根据sql条件和参数查询单个实体对象
      * @author nan.li
@@ -53,7 +53,7 @@ public interface BasicJdbc
      */
     <T> T findOne(Class<T> clazz, String sql, Object... args)
         throws SQLException;
-        
+    
     /**
      * 根据主键对象和拥有外键的实体类，查询出一个外键对象
      * @author nan.li
@@ -64,7 +64,7 @@ public interface BasicJdbc
      */
     <T> T findForeignOne(Object idObj, Class<T> fkClass)
         throws SQLException;
-        
+    
     /**
      * 根据参数查询单个实体对象，无须指定sql即可查询
      * @author nan.li
@@ -75,7 +75,7 @@ public interface BasicJdbc
      */
     <T> T findOneNoSql(Class<T> clazz, Object... keyValues)
         throws SQLException;
-        
+    
     /**
      * 根据sql条件和参数查询出一个HashMap
      * @param sql sql
@@ -84,7 +84,7 @@ public interface BasicJdbc
      */
     Map<String, Object> findMap(String sql, Object... args)
         throws SQLException;
-        
+    
     /**
      * 根据sql条件和参数查询出一个value值，可能是一个String，也可能是一个int值<br>
      * 一般用在count等查询语句中<br>
@@ -98,7 +98,7 @@ public interface BasicJdbc
      */
     <T> T findValue(String sql, Object... args)
         throws SQLException;
-        
+    
     /**
      * 兼容性更强的findValue统计语句<br>
      * 因为对于count(1)的结果类型，sqlite是int,mysql是long,oracle是bigDecimal，所以需要一种通用的兼容性写法！
@@ -110,7 +110,7 @@ public interface BasicJdbc
      */
     long findValueToLong(String sql, Object... args)
         throws SQLException;
-        
+    
     /**
      * 兼容性更强的findValue统计语句<br>
      * 因为对于count(1)的结果类型，sqlite是int,mysql是long,oracle是bigDecimal，所以需要一种通用的兼容性写法！
@@ -122,7 +122,7 @@ public interface BasicJdbc
      */
     int findValueToInt(String sql, Object... args)
         throws SQLException;
-        
+    
     /**
      * 计数<br>
      * 是findValueToInt的简写方式！
@@ -134,7 +134,7 @@ public interface BasicJdbc
      */
     int count(String sql, Object... args)
         throws SQLException;
-        
+    
     //查询结果集是一个列表的API=========================================================================
     //基本都是由list开头的
     /**
@@ -150,7 +150,7 @@ public interface BasicJdbc
      */
     <T> List<T> listValue(String sql, Object... args)
         throws SQLException;
-        
+    
     /**
      * 根据sql条件和参数查询对象列表<br>
      * 老API，基本不使用
@@ -163,7 +163,7 @@ public interface BasicJdbc
     @Deprecated
     <T> List<T> list(ResultSetResolve<T> ro, String sql, Object... args)
         throws SQLException;
-        
+    
     /**
      * 根据sql条件和参数查询对象列表<br>
      * @author nan.li
@@ -175,7 +175,7 @@ public interface BasicJdbc
      */
     <T> List<T> list(Class<T> clazz, String sql, Object... args)
         throws SQLException;
-        
+    
     /**
      * 根据主键对象和拥有外键的实体类，查询出外键对象列表
      * @author nan.li
@@ -186,7 +186,7 @@ public interface BasicJdbc
      */
     <T> List<T> listForeignList(Object idObj, Class<T> fkClass)
         throws SQLException;
-        
+    
     /**
      * 根据参数查询对象列表，并且支持分页查询
      * @author nan.li
@@ -200,7 +200,7 @@ public interface BasicJdbc
      */
     <T> List<T> listPaging(Class<T> clazz, String sql, int start, int limit, Object... args)
         throws SQLException;
-        
+    
     /**
      * 根据参数查询对象列表，无须指定sql即可查询
      * @author nan.li
@@ -212,7 +212,7 @@ public interface BasicJdbc
      */
     <T> List<T> listNoSql(Class<T> clazz, Object... keyValues)
         throws SQLException;
-        
+    
     /**
      * 查询某张表的所有数据，并指定表名称
      * @author nan.li
@@ -223,7 +223,7 @@ public interface BasicJdbc
      */
     <T> List<T> listAll(Class<T> clazz, String tableName)
         throws SQLException;
-        
+    
     /**
      * 查询某张表的所有数据
      * @author nan.li
@@ -233,7 +233,7 @@ public interface BasicJdbc
      */
     <T> List<T> listAll(Class<T> clazz)
         throws SQLException;
-        
+    
     /**
      * 查询某张表的所有数据，并且支持分页查询
      * @author nan.li
@@ -245,7 +245,7 @@ public interface BasicJdbc
      */
     <T> List<T> listAllPaging(Class<T> clazz, int start, int limit)
         throws SQLException;
-        
+    
     /**
      * 根据sql条件和参数查询任意结果集，将结果集映射成List&lt;Map&gt;
      * @param sql sql
@@ -254,7 +254,7 @@ public interface BasicJdbc
      */
     List<Map<String, Object>> listMap(String sql, Object... args)
         throws SQLException;
-        
+    
     /**
      * 根据sql条件和参数查询任意结果集，将结果集映射成List&lt;Map&gt;，并且支持分页查询
      * @author nan.li
@@ -267,7 +267,7 @@ public interface BasicJdbc
      */
     List<Map<String, Object>> listMapPaging(String sql, int start, int limit, Object... args)
         throws SQLException;
-        
+    
     /**
      * 根据sql条件和参数查询任意结果集，将结果集映射成List&lt;Map&gt;，并且支持分页查询<br>
      * 老API，已经不推荐再使用
@@ -281,7 +281,7 @@ public interface BasicJdbc
     @Deprecated
     List<Map<String, Object>> listMapPage(String sql, Collection<OrderBy> orders, int offset, int limit, Object... args)
         throws SQLException;
-        
+    
     /**
      * 老API，已经不推荐再使用。推荐使用findOne() 查找一个对象  或者findValue() 查询一个结果值
      * @param ro result set operator
@@ -294,7 +294,7 @@ public interface BasicJdbc
     @Deprecated
     <T> T query(ResultSetResolve<T> ro, String sql, Object... args)
         throws SQLException;
-        
+    
     /**
      * 执行任意sql语句
      * @param sql sql
@@ -303,17 +303,7 @@ public interface BasicJdbc
      */
     boolean execute(String sql, Object... args)
         throws SQLException;
-        
-    /**
-     * 批量执行任意sql语句
-     * @param sql sql
-     * @param args args
-     * @param batchSize batch size
-     * @return effect rows result
-     */
-    int executeBatch(String sql, int batchSize, Collection<?>... args)
-        throws SQLException;
-        
+    
     /**
      * 批量执行任意sql语句
      * @param sql sql
@@ -323,33 +313,7 @@ public interface BasicJdbc
      */
     int executeBatch(String sql, int batchSize, Collection<Collection<?>> args)
         throws SQLException;
-        
-    /**
-     * 插入多行数据
-     * @param table table
-     * @param cols column names
-     * @param args rows data
-     * @param batchSize batch size
-     * @return effect rows result
-     */
-    int insert(String table, Collection<String> cols, Collection<Collection<?>> args, int batchSize)
-        throws SQLException;
-        
-    int save(String table, Collection<String> cols, Collection<Collection<?>> args, int batchSize)
-        throws SQLException;
-        
-    /**
-     * 插入一行数据
-     * @param table table
-     * @param data row data
-     * @return effect rows result
-     */
-    int insert(String table, Map<String, Object> columnDataMap)
-        throws SQLException;
-        
-    int save(String table, Map<String, Object> columnDataMap)
-        throws SQLException;
-        
+    
     /**
      * 更新某张表
      * @param sql sql
@@ -358,7 +322,7 @@ public interface BasicJdbc
      */
     int update(String sql, final Object... args)
         throws SQLException;
-        
+    
     /**
      * 更新某张表
      * @param sql sql
@@ -367,7 +331,7 @@ public interface BasicJdbc
      */
     int updateByParamArray(String sql, Object[] values)
         throws SQLException;
-        
+    
     /**
      * 更新某个实体对象<br>
      * 主要是怕跟update()里面的可变参数冲突<br>
@@ -379,7 +343,7 @@ public interface BasicJdbc
      */
     int updateEntity(Object entity)
         throws SQLException;
-        
+    
     /**
      * 某个表的某个字段是否包含某个值
      * @author nan.li
@@ -390,7 +354,7 @@ public interface BasicJdbc
      */
     boolean contains(Class<?> tableClazz, String field, String value)
         throws SQLException;
-        
+    
     /**
      * 某个表的某个字段是否近似包含某个值
      * @author nan.li
@@ -401,7 +365,19 @@ public interface BasicJdbc
      */
     boolean containsLike(Class<?> tableClazz, String field, String value)
         throws SQLException;
-        
+    
+    /**
+     * 插入一行数据
+     * @param table table
+     * @param data row data
+     * @return effect rows result
+     */
+    int insert(String table, Map<String, Object> columnDataMap)
+        throws SQLException;
+    
+    int save(String table, Map<String, Object> columnDataMap)
+        throws SQLException;
+    
     /**
      * 插入一个实体类到数据库
      * @author nan.li
@@ -411,10 +387,10 @@ public interface BasicJdbc
      */
     int insert(Object entity)
         throws SQLException;
-        
+    
     int save(Object entity)
         throws SQLException;
-        
+    
     /**
      * 保存或更新，自适应<br>
      * 若声明了@Id的字段的值非空，则更新；否则，插入新记录
@@ -425,7 +401,7 @@ public interface BasicJdbc
      */
     int saveOrUpdate(Object entity)
         throws SQLException;
-        
+    
     /**
      * 批量插入实体类列表到数据库，使用默认的batchSize
      * @author nan.li
@@ -435,10 +411,10 @@ public interface BasicJdbc
      */
     int insertBatch(List<?> entities)
         throws SQLException;
-        
+    
     int saveBatch(List<?> entities)
         throws SQLException;
-        
+    
     /**
      * 批量插入实体类列表到数据库，指定批量提交的batchSize
      * @author nan.li
@@ -449,10 +425,10 @@ public interface BasicJdbc
      */
     int insertBatch(List<?> entities, int batchSize)
         throws SQLException;
-        
+    
     int saveBatch(List<?> entities, int batchSize)
         throws SQLException;
-        
+    
     /**
      * 删除一个实体对象<br>
      * 支持多主键对象
@@ -463,7 +439,7 @@ public interface BasicJdbc
      */
     int delete(Object entity)
         throws SQLException;
-        
+    
     /**
      * 根据表类删除某张表
      * @author nan.li
@@ -473,7 +449,7 @@ public interface BasicJdbc
      */
     boolean dropTable(Class<?> tableClazz)
         throws SQLException;
-        
+    
     /**
      * 根据表名称删除某张表
      * @author nan.li

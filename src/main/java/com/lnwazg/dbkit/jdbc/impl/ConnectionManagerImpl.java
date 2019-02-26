@@ -270,27 +270,7 @@ public class ConnectionManagerImpl extends BasicJdbcSupport implements Connectio
         });
     }
     
-    public int executeBatch(final String sql, final int batchSize, final Collection<?>... args)
-        throws SQLException
-    {
-        return executeTransaction(new BasicJdbcSupportConnectionObject<Integer>()
-        {
-            @Override
-            public Integer run()
-                throws SQLException
-            {
-                return executeBatch(sql, batchSize, args);
-            }
-        });
-    }
-    
     public int executeBatch(String sql, int batchSize, Collection<Collection<?>> args)
-        throws SQLException
-    {
-        return executeBatch(sql, batchSize, args.toArray(new Collection<?>[0]));
-    }
-    
-    public int insert(final String table, final Collection<String> cols, final Collection<Collection<?>> args, final int batchSize)
         throws SQLException
     {
         return execute(new BasicJdbcSupportConnectionObject<Integer>()
@@ -299,7 +279,7 @@ public class ConnectionManagerImpl extends BasicJdbcSupport implements Connectio
             public Integer run()
                 throws SQLException
             {
-                return insert(table, cols, args, batchSize);
+                return executeBatch(sql, batchSize, args);
             }
         });
     }
@@ -314,6 +294,21 @@ public class ConnectionManagerImpl extends BasicJdbcSupport implements Connectio
                 throws SQLException
             {
                 return insert(table, data);
+            }
+        });
+    }
+    
+    @Override
+    public int insertBatch(List<?> entities, int batchSize)
+        throws SQLException
+    {
+        return execute(new BasicJdbcSupportConnectionObject<Integer>()
+        {
+            @Override
+            public Integer run()
+                throws SQLException
+            {
+                return insertBatch(entities, batchSize);
             }
         });
     }

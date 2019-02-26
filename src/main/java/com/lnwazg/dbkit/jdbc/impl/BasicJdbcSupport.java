@@ -10,6 +10,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -255,7 +256,7 @@ public class BasicJdbcSupport implements BasicJdbc
                 ResultSet rs = null;
                 try
                 {
-                    rs = ps(statement).executeQuery();
+                    rs = convert2PreparedStatement(statement).executeQuery();
                     return ro.exec(rs);
                 }
                 finally
@@ -290,12 +291,12 @@ public class BasicJdbcSupport implements BasicJdbc
             public Boolean exec(Statement statement)
                 throws SQLException
             {
-                return ps(statement).execute();
+                return convert2PreparedStatement(statement).execute();
             }
         });
     }
     
-    public int executeBatch(final String sql, final int batchSize, final Collection<?>... args)
+    public int executeBatch(final String sql, final int batchSize, final Collection<Collection<?>> args)
         throws SQLException
     {
         return exec(new StatementObject<Integer>()
@@ -303,7 +304,7 @@ public class BasicJdbcSupport implements BasicJdbc
             public AllDbExecInfo build()
                 throws SQLException
             {
-                return prepareStatement(sql, Arrays.asList(args));
+                return prepareStatement(sql, args);
             }
             
             public Integer exec(Statement statement)
@@ -313,49 +314,33 @@ public class BasicJdbcSupport implements BasicJdbc
                 //By default, new connections are in auto-commit mode. 
                 connection.setAutoCommit(false);//关闭事务的自动提交。默认获得的连接就是自动提交的
                 int result = 0;
-                int bs = (batchSize > 0 ? batchSize : DbKit.DEFAULT_BATCH_SIZE);
-                int totalNum = args.length;
+                int actualBatchSize = (batchSize > 0 ? batchSize : DbKit.DEFAULT_BATCH_SIZE);
+                int totalNum = args.size();
+                Iterator<Collection<?>> iterator = args.iterator();
                 for (int i = 0; i < totalNum; i++)
                 {
-                    Collection<?> list = args[i];
-                    setValues(ps(statement), list);
-                    ps(statement).addBatch();//只有批量提交，没有批量删除操作！因为PreparedStatement只提供了addBatch()方法！
+                    Collection<?> list = iterator.next();
+                    setValues(convert2PreparedStatement(statement), list);
+                    convert2PreparedStatement(statement).addBatch();
+                    //只有批量提交，没有批量删除操作！因为PreparedStatement只提供了addBatch()方法！
                     //每满足一次批量数，就批量提交一次
-                    if ((i + 1) % bs == 0)
+                    if ((i + 1) % actualBatchSize == 0)
                     {
-                        result += sum(ps(statement).executeBatch());
+                        result += sum(convert2PreparedStatement(statement).executeBatch());
                         connection.commit();
-                        ps(statement).clearBatch();
+                        convert2PreparedStatement(statement).clearBatch();
                     }
                 }
                 //如果有零头，那么将零头也批量提交掉
-                if (totalNum % bs != 0)
+                if (totalNum % actualBatchSize != 0)
                 {
-                    result += sum(ps(statement).executeBatch());
+                    result += sum(convert2PreparedStatement(statement).executeBatch());
                     connection.commit();
-                    ps(statement).clearBatch();
+                    convert2PreparedStatement(statement).clearBatch();
                 }
                 return result;
             }
         });
-    }
-    
-    public int executeBatch(final String sql, final int batchSize, final Collection<Collection<?>> args)
-        throws SQLException
-    {
-        return executeBatch(sql, batchSize, args.toArray(new Collection<?>[0]));
-    }
-    
-    public int insert(String table, Collection<String> cols, Collection<Collection<?>> values, int batchSize)
-        throws SQLException
-    {
-        return executeBatch(generateInsertSQL(table, cols), batchSize, values.toArray(new Collection<?>[0]));
-    }
-    
-    public int save(String table, Collection<String> cols, Collection<Collection<?>> values, int batchSize)
-        throws SQLException
-    {
-        return insert(table, cols, values, batchSize);
     }
     
     public int insert(String table, Map<String, Object> columnDataMap)
@@ -392,7 +377,7 @@ public class BasicJdbcSupport implements BasicJdbc
             public Integer exec(Statement statement)
                 throws SQLException
             {
-                return ps(statement).executeUpdate();
+                return convert2PreparedStatement(statement).executeUpdate();
             }
         });
     }
@@ -411,7 +396,7 @@ public class BasicJdbcSupport implements BasicJdbc
             public Integer exec(Statement statement)
                 throws SQLException
             {
-                return ps(statement).executeUpdate();
+                return convert2PreparedStatement(statement).executeUpdate();
             }
         });
     }
@@ -603,7 +588,7 @@ public class BasicJdbcSupport implements BasicJdbc
         }
     }
     
-    private PreparedStatement ps(Statement statement)
+    private PreparedStatement convert2PreparedStatement(Statement statement)
     {
         return (PreparedStatement)statement;
     }
@@ -691,8 +676,9 @@ public class BasicJdbcSupport implements BasicJdbc
     }
     
     /**
+     * 构建SQL
      * @param sql delete from users where id in (?)
-     * @param args
+     * @param args    形如： ["aa","bb","cc"]
      * @param outArgs
      * @return
      */
@@ -701,6 +687,7 @@ public class BasicJdbcSupport implements BasicJdbc
         StringBuilder newSql = new StringBuilder();
         // avoid last ? could not be split
         String[] sqlSplitted = (sql + " ").split("\\?");
+        
         // no ? and values is empty
         if (sqlSplitted.length == 1 && args.isEmpty())
         {
@@ -740,9 +727,10 @@ public class BasicJdbcSupport implements BasicJdbc
     {
         String newSql;
         List<Object> newArgs = new LinkedList<Object>();
+        //args形如： [["aa","bb","cc"]]
         if (args.size() == 1)
         {
-            Object objArgs = args.iterator().next();
+            Object objArgs = args.iterator().next(); //["aa","bb","cc"]
             if (objArgs != null && objArgs.getClass().isArray())
             {
                 List<Object> vh = new LinkedList<Object>();
@@ -766,9 +754,22 @@ public class BasicJdbcSupport implements BasicJdbc
                 newArgs.add(objArgs);
             }
         }
+        //args形如：["aa","bb","cc"]  
+        //args形如：[["aa","bb","cc"]["dd","ee","ff"]]
         else if (args.size() > 1)
         {
-            newSql = buildSql(sql, args, newArgs);
+            if (args.iterator().next() instanceof Collection)
+            {
+                //如果是嵌套批量提交的二维数组，则啥也不拼接
+                //args形如：[["aa","bb","cc"]["dd","ee","ff"]]
+                newSql = sql;
+            }
+            else
+            {
+                //否则，采用传统拼接方式
+                //args形如：["aa","bb","cc"]  
+                newSql = buildSql(sql, args, newArgs);
+            }
         }
         else
         {
@@ -905,6 +906,20 @@ public class BasicJdbcSupport implements BasicJdbc
     }
     
     @Override
+    public int insertBatch(List<?> entities, int batchSize)
+        throws SQLException
+    {
+        long begin = System.currentTimeMillis();
+        BatchObj batchObj = TableUtils.getBatchObj(entities);
+        String tableName = TableUtils.getTableName(entities.get(0).getClass());
+        String sqlTemplate = generateInsertSQL(tableName, batchObj.getCols());
+        int result = executeBatch(sqlTemplate, batchSize, batchObj.getArgs());
+        long end = System.currentTimeMillis();
+        Logs.i(String.format("Batch Insert cost %d millseconds!", (end - begin)));
+        return result;
+    }
+    
+    @Override
     public int save(Object entity)
         throws SQLException
     {
@@ -936,18 +951,6 @@ public class BasicJdbcSupport implements BasicJdbc
         throws SQLException
     {
         return insertBatch(entities);
-    }
-    
-    @Override
-    public int insertBatch(List<?> entities, int batchSize)
-        throws SQLException
-    {
-        long begin = System.currentTimeMillis();
-        BatchObj batchObj = TableUtils.getBatchObj(entities);
-        int result = insert(TableUtils.getTableName(entities.get(0).getClass()), batchObj.getCols(), batchObj.getArgs(), batchSize);
-        long end = System.currentTimeMillis();
-        Logs.i(String.format("Batch Insert cost %d millseconds!", (end - begin)));
-        return result;
     }
     
     public int saveBatch(List<?> entities, int batchSize)
