@@ -760,7 +760,7 @@ public class BasicJdbcSupport implements BasicJdbc
         {
             if (args.iterator().next() instanceof Collection)
             {
-                //如果是嵌套批量提交的二维数组，则啥也不拼接
+                //如果是嵌套批量提交的二维数组，则啥也不拼接，也不构造新参数
                 //args形如：[["aa","bb","cc"]["dd","ee","ff"]]
                 newSql = sql;
             }
