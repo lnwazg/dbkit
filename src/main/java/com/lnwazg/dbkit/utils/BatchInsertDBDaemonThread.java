@@ -28,7 +28,7 @@ public class BatchInsertDBDaemonThread
     {
         //后台进程自动批量提交数据到数据库，大大减轻数据库的压力
         //延迟批量提交，是提高数据库插入性能的神器
-        ExecMgr.startDaemenThread(() -> {
+        ExecMgr.startThread(() -> {
             while (true)
             {
                 int size = vector.size();
