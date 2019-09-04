@@ -564,7 +564,7 @@ public class DaoProxy
                     //非注解类型，则要调用的MyJdbc对象的方法
                     //所以，只要是调用非MyJdbc对象的方法，都应当加上注解！
                     
-                    //是否应该对没加注解的DAO操作（也就是MyJdbc接口的自有方法）加上同步操作
+                    //是否应该对没加注解的DAO（也就是MyJdbc接口的自有方法）加上同步操作
                     boolean shouldSyncNonAnnoMethod = false;
                     //若需同步写
                     if (syncWrite)
@@ -573,7 +573,6 @@ public class DaoProxy
                         boolean isWriteOperation = judgeWriteOperation(method.getName());
                         shouldSyncNonAnnoMethod = isWriteOperation;
                     }
-                    
                     if (shouldSyncNonAnnoMethod)
                     {
                         //若是写操作，那么得加锁访问原方法
@@ -626,7 +625,7 @@ public class DaoProxy
             }
         }
         boolean finalResult = !isSelectOps;
-        Logs.i("judgeWriteOperation methodName=" + methodName + " result=" + finalResult);
+//        Logs.i("judgeWriteOperation methodName=" + methodName + " result=" + finalResult);
         return finalResult;
     }
     
